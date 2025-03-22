@@ -2,9 +2,9 @@ export const landingPageData = {
   navigation: {
     links: [
       { name: 'Home', href: '/' },
-      { name: 'Products', href: '/products' },
+      { name: 'Products', href: '#' },
       { name: 'About', href: '#about' },
-      { name: 'Contact Us', href: '/contact' }
+      { name: 'Contact Us', href: '#' }
     ]
   },
 

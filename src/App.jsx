@@ -8,9 +8,11 @@ export default function App() {
     <ThemeProvider>
       <Router>
         <div className="min-h-screen bg-background dark:bg-dark-background text-text-primary dark:text-dark-text-primary">
-          <nav className="p-4">
+          {/* Fixed position theme toggle */}
+          <div className="fixed bottom-4 right-4 z-50">
             <ThemeToggle />
-          </nav>
+          </div>
+          
           <Routes>
             <Route path="/" element={<LandingPage />} />
             {/* Add other routes as we build them */}
