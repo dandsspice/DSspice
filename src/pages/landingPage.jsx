@@ -21,6 +21,7 @@ import {
   AnimatedText,
   AnimatedSection
 } from '../components/animated/AnimatedComponents'
+import Button from '../components/common/Button'
 
 // Enhanced gradient overlay with better opacity
 const GradientOverlay = () => (
@@ -198,18 +199,22 @@ export default function LandingPage() {
             </AnimatedText>
             <AnimatedText delay={0.4}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a
-                  href="#"
-                  className="w-full sm:w-auto px-8 py-3 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
+                <Button
+                  href="/order"
+                  variant="primary"
+                  size="large"
+                  fullWidth
                 >
                   Order Now
-                </a>
-                <a
-                  href="#"
-                  className="w-full sm:w-auto px-8 py-3 rounded-full border border-white/20 text-white font-medium transition-all duration-200 hover:bg-white/10"
+                </Button>
+                <Button
+                  href="#learn-more"
+                  variant="outline"
+                  size="large"
+                  fullWidth
                 >
                   Learn More
-                </a>
+                </Button>
               </div>
             </AnimatedText>
           </motion.div>
@@ -346,18 +351,22 @@ export default function LandingPage() {
             locust bean needs. Limited stock available!
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <AnimatedButton
+            <Button
               href="/order"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
+              variant="primary"
+              size="large"
+              fullWidth
             >
               Order Now
-            </AnimatedButton>
-            <a
-              href="/"
-              className="w-full sm:w-auto px-8 py-4 rounded-full border border-secondary/20 font-medium transition-all duration-200 hover:bg-secondary/10"
+            </Button>
+            <Button
+              href="/contact"
+              variant="outline"
+              size="large"
+              fullWidth
             >
               Contact Us
-            </a>
+            </Button>
           </div>
         </div>
       </AnimatedSection>
