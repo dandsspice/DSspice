@@ -66,7 +66,7 @@ export default function ProductsPage() {
                 onClick={() => setActiveCategory(category.id)}
                 className={`
                   shrink-0 snap-start
-                  min-w-[120px] sm:min-w-fit
+                  min-w-[170px] sm:min-w-fit
                   text-sm sm:text-base
                   px-4 py-2 sm:px-6
                   ${activeCategory === category.id 
