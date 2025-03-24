@@ -54,12 +54,24 @@ export default function CartDrawer() {
     setSelectAll(!selectAll);
   };
 
+  const handleRemoveItem = (itemId) => {
+    removeFromCart(itemId);
+    // Remove the item from selected items if it was selected
+    const newSelected = new Set(selectedItems);
+    newSelected.delete(itemId);
+    setSelectedItems(newSelected);
+    if (newSelected.size !== cartItems.length) {
+      setSelectAll(false);
+    }
+  };
+
   const handleBulkRemove = () => {
     setShowConfirmDialog(true);
   };
 
   const confirmBulkRemove = () => {
-    selectedItems.forEach(itemId => {
+    // Convert Set to Array before forEach to avoid modification during iteration
+    Array.from(selectedItems).forEach(itemId => {
       removeFromCart(itemId);
     });
     setSelectedItems(new Set());
@@ -247,6 +259,16 @@ export default function CartDrawer() {
                                           <p className="text-xs text-red-500 mt-1">{quantityError.message}</p>
                                         )}
                                       </div>
+                                    </div>
+
+                                    <div className="ml-4 flex flex-1 items-end justify-between text-sm">
+                                      <button
+                                        type="button"
+                                        className="font-medium text-red-500 hover:text-red-600"
+                                        onClick={() => handleRemoveItem(item.id)}
+                                      >
+                                        Remove
+                                      </button>
                                     </div>
                                   </motion.li>
                                 ))}
