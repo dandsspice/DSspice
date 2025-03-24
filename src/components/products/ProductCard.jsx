@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useCart } from '../../context/CartContext';
 import Button from '../common/Button';
 import QuickView from './QuickView';
 import { EyeIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 export default function ProductCard({ product }) {
   const { darkMode } = useTheme();
+  const { addToCart } = useCart();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+
+  const handleAddToCart = () => {
+    // Default to the first size option if no size is selected
+    addToCart(product, 1, product.sizes[0]);
+  };
 
   return (
     <>
@@ -45,20 +52,33 @@ export default function ProductCard({ product }) {
         </div>
         
         <div className="p-6">
-          <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-          <p className="text-text-secondary mb-4">{product.shortDescription}</p>
+          <h3 className="text-xl font-semibold mb-2 text-text-primary dark:text-dark-text-primary">
+            {product.name}
+          </h3>
+          <p className="text-text-secondary dark:text-dark-text-secondary mb-4">
+            {product.shortDescription}
+          </p>
           
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-accent">
               ${product.sizes[0].price}
             </span>
-            <Button
-              variant="primary"
-              size="small"
-              leftIcon={<ShoppingCartIcon className="w-5 h-5" />}
-            >
-              Add to Cart
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="small"
+                onClick={() => setIsQuickViewOpen(true)}
+              >
+                Quick View
+              </Button>
+              <Button
+                variant="primary"
+                size="small"
+                onClick={handleAddToCart}
+              >
+                Add to Cart
+              </Button>
+            </div>
           </div>
         </div>
       </motion.div>

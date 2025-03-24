@@ -4,13 +4,20 @@ import { useState } from 'react';
 import Button from '../common/Button';
 import { XMarkIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import ImageCarousel from './ImageCarousel';
+import { useCart } from '../../context/CartContext';
 
 export default function QuickView({ product, isOpen, onClose }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(product?.sizes[0]);
+  const { addToCart } = useCart();
 
   const handleQuantityChange = (value) => {
     setQuantity(Math.max(1, Math.min(10, value)));
+  };
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity, selectedSize);
+    onClose();
   };
 
   return (
@@ -144,7 +151,7 @@ export default function QuickView({ product, isOpen, onClose }) {
                         <Button
                           variant="primary"
                           fullWidth
-                          leftIcon={<ShoppingCartIcon className="w-5 h-5" />}
+                          onClick={handleAddToCart}
                         >
                           Add to Cart
                         </Button>

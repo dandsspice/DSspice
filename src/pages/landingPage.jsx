@@ -25,7 +25,7 @@ import Button from '../components/common/Button'
 
 // Enhanced gradient overlay with better opacity
 const GradientOverlay = () => (
-  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
+  <div className="absolute inset-0 bg-gradient-to-b from-black/100 via-black/40 to-transparent" />
 );
 
 export default function LandingPage() {
@@ -69,7 +69,7 @@ export default function LandingPage() {
                 alt="D&Sspice Logo"
                 className="h-10 w-auto"
               />
-            </div>
+          </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex md:items-center md:space-x-8">
@@ -85,18 +85,18 @@ export default function LandingPage() {
                   }}
                   className="text-sm font-medium transition-colors duration-200 hover:text-accent"
                 >
-                  {item.name}
-                </a>
-              ))}
-            </div>
+                {item.name}
+              </a>
+            ))}
+          </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               <AnimatedButton
                 href="/#"
                 className="hidden md:block px-4 py-2 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-              >
-                Order Now
+            >
+              Order Now
               </AnimatedButton>
 
               {/* Mobile Menu Button */}
@@ -123,29 +123,29 @@ export default function LandingPage() {
         
         {/* Panel */}
         <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background dark:bg-dark-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-secondary/10">
-          <div className="flex items-center justify-between">
-            <img
+            <div className="flex items-center justify-between">
+                <img
               src="images/spicy-logo.png"
-              alt="D&Sspice Logo"
-              className="h-8 w-auto"
-            />
-            <button
-              type="button"
+                  alt="D&Sspice Logo"
+                  className="h-8 w-auto"
+                />
+              <button
+                type="button"
               className="-m-2.5 rounded-md p-2.5"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className="sr-only">Close menu</span>
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="sr-only">Close menu</span>
               <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
+              </button>
+            </div>
           
-          <div className="mt-6 flow-root">
-            <div className="-my-6 divide-y divide-secondary/10">
-              <div className="space-y-2 py-6">
-                {navigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
+            <div className="mt-6 flow-root">
+              <div className="-my-6 divide-y divide-secondary/10">
+                <div className="space-y-2 py-6">
+                  {navigation.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
                     onClick={(e) => {
                       if (item.action) {
                         e.preventDefault();
@@ -154,23 +154,23 @@ export default function LandingPage() {
                       setMobileMenuOpen(false);
                     }}
                     className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
-                  >
-                    {item.name}
-                  </a>
-                ))}
-              </div>
-              <div className="py-6">
-                <a
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </div>
+                <div className="py-6">
+                  <a
                   href="/#"
                   className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-                >
-                  Order Now
-                </a>
+                  >
+                    Order Now
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
         </Dialog.Panel>
-      </Dialog>
+        </Dialog>
 
       {/* Enhanced Hero Section */}
       <div className="relative min-h-screen flex items-center justify-center">
@@ -208,6 +208,7 @@ export default function LandingPage() {
                   Order Now
                 </Button>
                 <Button
+                  
                   href="#learn-more"
                   variant="outline"
                   size="large"
@@ -219,7 +220,7 @@ export default function LandingPage() {
             </AnimatedText>
           </motion.div>
         </div>
-      </div>
+            </div>
 
       {/* Enhanced Features Section */}
       <section className="py-20 sm:py-32">
@@ -242,8 +243,8 @@ export default function LandingPage() {
                     alt={feature.imageAlt}
                     className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  <div className="absolute bottom-0 p-6 sm:p-8">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent" />
+                  <div className="absolute bottom-0 p-6 sm:p-8 z-10">
                     <h3 className="text-2xl font-semibold text-white mb-3">
                       {feature.title}
                     </h3>
@@ -367,7 +368,7 @@ export default function LandingPage() {
             >
               Contact Us
             </Button>
-          </div>
+            </div>
         </div>
       </AnimatedSection>
 
@@ -376,9 +377,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-text-secondary">
             <p>&copy; {new Date().getFullYear()} D&Sspice. All rights reserved.</p>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
     </div>
   )
 }

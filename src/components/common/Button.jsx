@@ -53,7 +53,7 @@ export default function Button({
     ${isLoading ? 'cursor-wait' : ''}
   `.trim();
 
-  const MotionComponent = isAnimated ? motion.button : 'button';
+  const MotionComponent = motion.button;
   const animationProps = isAnimated ? {
     whileHover: expandOnHover ? { 
       scale: 1.05,
