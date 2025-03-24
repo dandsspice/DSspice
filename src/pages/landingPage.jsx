@@ -23,7 +23,7 @@ import {
 } from '../components/animated/AnimatedComponents'
 import Button from '../components/common/Button'
 import ScrollIndicator from '../components/common/ScrollIndicator'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 // Enhanced gradient overlay with better opacity
 const GradientOverlay = () => (
@@ -37,6 +37,7 @@ export default function LandingPage() {
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+  const location = useLocation();
 
   // Add ref for about section visibility
   const aboutInViewRef = useRef(null);
@@ -62,6 +63,25 @@ export default function LandingPage() {
       ? () => scrollToSection(aboutRef)
       : null
   }))
+
+  useEffect(() => {
+    // Check if we have a section to scroll to and if we should scroll
+    if (location.state?.scrollTo && location.state?.shouldScroll) {
+      // Small delay to ensure the page has loaded
+      const timeoutId = setTimeout(() => {
+        const element = document.getElementById(location.state.scrollTo);
+        if (element) {
+          const yOffset = -80;
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+        // Clear the state after scrolling
+        window.history.replaceState({}, document.title);
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [location.state]);
 
   return (
     <div className={`bg-background ${darkMode ? 'dark' : ''}`}>
@@ -295,7 +315,8 @@ export default function LandingPage() {
       </section>
 
       {/* Enhanced About Section with improved visibility animation */}
-      <AnimatedSection
+     <section id='about'>
+     <AnimatedSection
         ref={aboutRef}
         id="about"
         className="py-20 sm:py-32 bg-background-alt relative"
@@ -356,6 +377,7 @@ export default function LandingPage() {
           </div>
         </motion.div>
       </AnimatedSection>
+     </section>
 
       {/* Enhanced Testimonials Section */}
       <section className="py-20 sm:py-32">
