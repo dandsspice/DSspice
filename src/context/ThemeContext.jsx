@@ -3,21 +3,31 @@ import { createContext, useContext, useEffect, useState } from 'react'
 const ThemeContext = createContext(null)
 
 export function ThemeProvider({ children }) {
-  const [darkMode, setDarkMode] = useState(false)
+  // Initialize state from localStorage, default to 'light'
+  const [darkMode, setDarkMode] = useState(() => {
+    // Get the stored theme from localStorage
+    const storedTheme = localStorage.getItem('theme')
+    // Return false for light mode if no theme is stored
+    return storedTheme === 'dark'
+  })
 
+  // Apply theme on initial load and when darkMode changes
   useEffect(() => {
-    // Check initial theme on mount
-    const isDark = localStorage.theme === 'dark' || 
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    setDarkMode(isDark)
-    document.documentElement.classList.toggle('dark', isDark)
-  }, [])
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [darkMode])
 
   const toggleDarkMode = () => {
-    const newDarkMode = !darkMode
-    setDarkMode(newDarkMode)
-    document.documentElement.classList.toggle('dark', newDarkMode)
-    localStorage.theme = newDarkMode ? 'dark' : 'light'
+    setDarkMode(prevMode => {
+      const newMode = !prevMode
+      localStorage.setItem('theme', newMode ? 'dark' : 'light')
+      return newMode
+    })
   }
 
   return (

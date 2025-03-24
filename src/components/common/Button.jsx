@@ -24,7 +24,7 @@ export default function Button({
   tooltipPosition = 'top',
   ...props 
 }) {
-  const baseStyles = "rounded-full font-medium transition-all duration-200";
+  const baseStyles = "rounded-full font-medium transition-all duration-200 flex items-center justify-center text-center";
   
   const variants = {
     primary: "bg-secondary text-primary hover:bg-secondary-light hover:shadow-lg",
@@ -108,7 +108,7 @@ export default function Button({
 
   if (href) {
     return (
-      <Link to={href}>
+      <Link to={href} className={fullWidth ? 'w-full block' : 'inline-block'}>
         <div className="relative group">
           <RippleButton
             className={`flex items-center gap-2 ${buttonClasses}`}

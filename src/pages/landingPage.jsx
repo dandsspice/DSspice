@@ -50,7 +50,7 @@ export default function LandingPage() {
   }))
 
   return (
-    <div className={`bg-background ${darkMode ? 'dark' : ''}`}>
+    <div className={``}>
       {/* Enhanced Header with Better Mobile Experience */}
       <motion.header 
         initial={{ y: -100 }}
