@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
 import CheckoutForm from '../components/checkout/CheckoutForm';
+import BackButton from '../components/common/BackButton';
 
 export default function CheckoutPage() {
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <BackButton />
+        </div>
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

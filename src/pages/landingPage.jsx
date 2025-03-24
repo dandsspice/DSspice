@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import landingPageData from '../data/landingPageData'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform, useInView } from 'framer-motion'
 import { 
   fadeInUp, 
   staggerContainer, 
@@ -22,6 +22,8 @@ import {
   AnimatedSection
 } from '../components/animated/AnimatedComponents'
 import Button from '../components/common/Button'
+import ScrollIndicator from '../components/common/ScrollIndicator'
+import { Link } from 'react-router-dom'
 
 // Enhanced gradient overlay with better opacity
 const GradientOverlay = () => (
@@ -36,21 +38,33 @@ export default function LandingPage() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 
+  // Add ref for about section visibility
+  const aboutInViewRef = useRef(null);
+  const isAboutInView = useInView(aboutInViewRef, { once: true });
+
+  // Enhanced smooth scroll function
   const scrollToSection = (elementRef) => {
-    elementRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+    const yOffset = -80; // Adjust for header height
+    const element = elementRef.current;
+    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+    window.scrollTo({
+      top: y,
+      behavior: 'smooth'
+    });
+  };
 
   const navigation = landingPageData.navigation.links.map(item => ({
     ...item,
-    action: item.href === '/' 
+    action: item.to === '/' 
       ? () => window.scrollTo({ top: 0, behavior: 'smooth' })
-      : item.href === '#about' 
+      : item.to === '#about' 
       ? () => scrollToSection(aboutRef)
       : null
   }))
 
   return (
-    <div className={``}>
+    <div className={`bg-background ${darkMode ? 'dark' : ''}`}>
       {/* Enhanced Header with Better Mobile Experience */}
       <motion.header 
         initial={{ y: -100 }}
@@ -63,41 +77,46 @@ export default function LandingPage() {
         } backdrop-blur-md border-b border-secondary/10`}>
           <div className="flex h-16 items-center justify-between">
             {/* Logo Section */}
-            <div className="flex-shrink-0">
+            <Link to="/" className="flex-shrink-0">
               <img
                 src="images/spicy-logo.png"
                 alt="D&Sspice Logo"
                 className="h-10 w-auto"
               />
-          </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex md:items-center md:space-x-8">
               {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={(e) => {
-                    if (item.action) {
-                      e.preventDefault()
-                      item.action()
-                    }
-                  }}
-                  className="text-sm font-medium transition-colors duration-200 hover:text-accent"
-                >
-                {item.name}
-              </a>
-            ))}
-          </div>
+                item.to.startsWith('#') ? (
+                  <button
+                    key={item.name}
+                    onClick={item.action}
+                    className="text-sm font-medium transition-colors duration-200 hover:text-accent"
+                  >
+                    {item.name}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.to}
+                    onClick={item.action}
+                    className="text-sm font-medium transition-colors duration-200 hover:text-accent"
+                  >
+                    {item.name}
+                  </Link>
+                )
+              ))}
+            </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
-              <AnimatedButton
-                href="/#"
+              <Link
+                to="/products"
                 className="hidden md:block px-4 py-2 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-            >
-              Order Now
-              </AnimatedButton>
+              >
+                Order Now
+              </Link>
 
               {/* Mobile Menu Button */}
               <button
@@ -143,29 +162,36 @@ export default function LandingPage() {
               <div className="-my-6 divide-y divide-secondary/10">
                 <div className="space-y-2 py-6">
                   {navigation.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                    onClick={(e) => {
-                      if (item.action) {
-                        e.preventDefault();
-                        item.action();
-                      }
-                      setMobileMenuOpen(false);
-                    }}
-                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
-                    >
-                      {item.name}
-                    </a>
+                    item.to.startsWith('#') ? (
+                      <button
+                        key={item.name}
+                        onClick={() => {
+                          item.action?.();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
+                      >
+                        {item.name}
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.name}
+                        to={item.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
+                      >
+                        {item.name}
+                      </Link>
+                    )
                   ))}
                 </div>
                 <div className="py-6">
-                  <a
-                  href="/#"
+                  <Link
+                  to="/products"
                   className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
                   >
                     Order Now
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -199,28 +225,37 @@ export default function LandingPage() {
             </AnimatedText>
             <AnimatedText delay={0.4}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button
-                  href="/order"
-                  variant="primary"
-                  size="large"
-                  fullWidth
+                <Link
+                  to="/products"
+                  className="w-full sm:w-auto">
+                  <Button
+                    variant="primary"
+                    size="large"
+                    fullWidth
+                  >
+                    Order Now
+                  </Button>
+                </Link>
+                <button
+                  onClick={() => scrollToSection(aboutRef)}
+                  className="w-full sm:w-auto"
                 >
-                  Order Now
-                </Button>
-                <Button
-                  
-                  href="#learn-more"
-                  variant="outline"
-                  size="large"
-                  fullWidth
-                >
-                  Learn More
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="large"
+                    fullWidth
+                  >
+                    Learn More
+                  </Button>
+                </button>
               </div>
             </AnimatedText>
           </motion.div>
+          
+          {/* Updated ScrollIndicator usage */}
+          <ScrollIndicator onClick={() => scrollToSection(aboutRef)} />
         </div>
-            </div>
+      </div>
 
       {/* Enhanced Features Section */}
       <section className="py-20 sm:py-32">
@@ -252,20 +287,34 @@ export default function LandingPage() {
                       {feature.description}
                     </p>
                   </div>
-                </div>
+            </div>
               </AnimatedCard>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Enhanced About Section */}
+      {/* Enhanced About Section with improved visibility animation */}
       <AnimatedSection
         ref={aboutRef}
         id="about"
-        className="py-20 sm:py-32 bg-background-alt"
+        className="py-20 sm:py-32 bg-background-alt relative"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          ref={aboutInViewRef}
+          initial={{ opacity: 0, y: 50 }}
+          animate={isAboutInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          {/* Add highlight effect when scrolled into view */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={isAboutInView ? { scaleX: 1 } : {}}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            className="absolute top-0 left-0 w-full h-1 bg-accent origin-left"
+          />
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <motion.div
               variants={slideInFromLeft}
@@ -305,7 +354,7 @@ export default function LandingPage() {
               </div>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
       </AnimatedSection>
 
       {/* Enhanced Testimonials Section */}
@@ -352,22 +401,30 @@ export default function LandingPage() {
             locust bean needs. Limited stock available!
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              href="/order"
-              variant="primary"
-              size="large"
-              fullWidth
+            <Link
+              to="/products"
+              className="w-full sm:w-auto"
             >
-              Order Now
-            </Button>
-            <Button
-              href="/contact"
-              variant="outline"
-              size="large"
-              fullWidth
+              <Button
+                variant="primary"
+                size="large"
+                fullWidth
+              >
+                Order Now
+              </Button>
+            </Link>
+            <Link
+              to="/contact"
+              className="w-full sm:w-auto"
             >
-              Contact Us
-            </Button>
+              <Button
+                variant="outline"
+                size="large"
+                fullWidth
+              >
+                Contact Us
+              </Button>
+            </Link>
             </div>
         </div>
       </AnimatedSection>

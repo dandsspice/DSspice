@@ -1,10 +1,10 @@
 export const landingPageData = {
   navigation: {
     links: [
-      { name: 'Home', href: '/' },
-      { name: 'Products', href: '/products' },
-      { name: 'About', href: '#about' },
-      { name: 'Contact Us', href: '#' }
+      { name: 'Home', to: '/' },
+      { name: 'Products', to: '/products' },
+      { name: 'About', to: '#about' },
+      { name: 'Contact Us', to: '#' }
     ]
   },
 
