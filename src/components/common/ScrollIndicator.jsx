@@ -14,7 +14,7 @@ export default function ScrollIndicator({ onClick }) {
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 cursor-pointer"
+      className="absolute top-[105%] left-1/2 transform -translate-x-1/2 z-20 cursor-pointer"
       onClick={onClick}
     >
       <div className="flex flex-col items-center text-white">
