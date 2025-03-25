@@ -94,7 +94,7 @@ export const landingPageData = {
   hero: {
     title: "Bringing the Heart of African Flavor to Your Kitchen!",
     subtitle: "Premium Dried Locust Beans for the Ultimate Taste Experience",
-    backgroundImage: "https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?auto=format&fit=crop&w=1920&h=1080",
+    backgroundImage: "images/heroBanner.jpg",
     cta: {
       primary: {
         text: "Shop Now",
