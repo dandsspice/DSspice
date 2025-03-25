@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
-import { useCart } from '../../context/CartContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Add these utility functions at the top of the file
 const formatPhoneNumber = (value) => {
@@ -26,46 +26,48 @@ const formatExpiryDate = (value) => {
   return `${expiry.slice(0, 2)}/${expiry.slice(2, 4)}`;
 };
 
-export default function CheckoutForm() {
-  const { cartItems, cartTotal } = useCart();
+export default function CheckoutForm({ orderData }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
-  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [formData, setFormData] = useState({
-    // Personal Information
     firstName: '',
     lastName: '',
     email: '',
-    phone: '+234',
-    
-    // Shipping Information
+    phone: '',
     address: '',
-    apartment: '',
     city: '',
-    state: '',
-    zipCode: '',
-    country: '',
-    
-    // Delivery Options
-    shippingMethod: 'standard',
-    
-    // Payment Information
-    cardName: '',
+    postcode: '',
     cardNumber: '',
+    cardName: '',
     expiryDate: '',
     cvv: '',
+    shippingMethod: 'RoyalMailTracked48' // Default shipping method
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+  
+  // Get order data from location state
+  const order = location.state || orderData || {
+    type: 'powdered',
+    size: { id: 'medium', name: 'Medium', weight: '250g', price: 39.99 }
+  };
 
-  // Shipping cost calculation
-  const shippingCosts = {
-    standard: 0,
-    express: 15,
-    overnight: 25
+  // Add a function to get shipping cost based on selected method
+  const getShippingCost = (method) => {
+    const shippingCosts = {
+      RoyalMailTracked48: 3.39,
+      RoyalMailTracked24: 4.25,
+      RoyalMailSigned1stClass: 5.49,
+      RoyalMailTracked24Signed: 5.65
+    };
+    return shippingCosts[method] || 3.39;
   };
 
   const getTotalWithShipping = () => {
-    return cartTotal + shippingCosts[formData.shippingMethod];
+    const shippingCost = getShippingCost(formData.shippingMethod);
+    return order.size.price + shippingCost;
   };
 
   // Validation rules
@@ -95,29 +97,21 @@ export default function CheckoutForm() {
   // Enhanced input handling
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    let formattedValue = value;
-
+    
+    // Handle different form field types
     if (name === 'phone') {
-      // Ensure the country code (+234) is always present
-      if (!value.startsWith('+234')) {
-        formattedValue = '+234' + value.replace('+234', '');
-      }
-      // Only allow digits after country code
-      const numberPart = value.replace('+234', '');
-      formattedValue = '+234' + numberPart.replace(/\D/g, '');
+      setFormData({ ...formData, [name]: formatPhoneNumber(value) });
     } else if (name === 'cardNumber') {
-      formattedValue = formatCardNumber(value);
+      setFormData({ ...formData, [name]: formatCardNumber(value) });
     } else if (name === 'expiryDate') {
-      formattedValue = formatExpiryDate(value);
-    } else if (name === 'cvv') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 4);
-    } else if (name === 'zipCode') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 5);
+      setFormData({ ...formData, [name]: formatExpiryDate(value) });
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
-
-    setFormData(prev => ({ ...prev, [name]: formattedValue }));
+    
+    // Clear error when field is edited
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors({ ...errors, [name]: null });
     }
   };
 
@@ -142,37 +136,46 @@ export default function CheckoutForm() {
   `;
 
   // Order Summary Component
-  const OrderSummary = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="bg-background-alt dark:bg-dark-background-alt rounded-lg p-6 space-y-4"
-    >
-      <h3 className="text-lg font-semibold">Order Summary</h3>
-      <div className="space-y-3">
-        {cartItems.map((item) => (
-          <div key={item.id} className="flex justify-between text-sm">
-            <span>{item.name} x {item.quantity}</span>
-            <span>${(item.price * item.quantity).toFixed(2)}</span>
+  const OrderSummary = () => {
+    const shippingCost = getShippingCost(formData.shippingMethod);
+    const quantity = order.quantity || 1;
+    const productPrice = order.size.price * quantity;
+    const total = productPrice + shippingCost;
+    
+    return (
+      <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
+        <h3 className="text-lg font-semibold mb-4 text-text-primary dark:text-dark-text-primary">
+          Order Summary
+        </h3>
+        <div className="space-y-4">
+          <div className="flex justify-between pb-4 border-b border-secondary/10">
+            <div className="space-y-1">
+              <p className="font-medium">{order.typeName || `Premium Locust Beans (${order.type})`}</p>
+              <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                {order.size.weight} × {quantity}
+              </p>
+            </div>
+            <p className="font-medium">${productPrice.toFixed(2)}</p>
           </div>
-        ))}
-        <div className="border-t border-secondary/20 pt-3">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>${cartTotal.toFixed(2)}</span>
+          
+          <div className="flex justify-between pb-4 border-b border-secondary/10">
+            <div className="space-y-1">
+              <p>Shipping</p>
+              <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                {formData.shippingMethod.replace(/([A-Z])/g, ' $1').trim()}
+              </p>
+            </div>
+            <p>€{shippingCost.toFixed(2)}</p>
           </div>
-          <div className="flex justify-between text-sm text-text-secondary dark:text-dark-text-secondary">
-            <span>Shipping ({formData.shippingMethod})</span>
-            <span>${shippingCosts[formData.shippingMethod].toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between font-semibold mt-3 text-lg">
-            <span>Total</span>
-            <span>${getTotalWithShipping().toFixed(2)}</span>
+          
+          <div className="flex justify-between text-lg font-bold">
+            <p>Total</p>
+            <p>${total.toFixed(2)}</p>
           </div>
         </div>
       </div>
-    </motion.div>
-  );
+    );
+  };
 
   // Progress Steps Component
   const ProgressSteps = () => (
@@ -267,7 +270,7 @@ export default function CheckoutForm() {
       try {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsSuccess(true);
+        setIsComplete(true);
       } catch (error) {
         setErrors({ submit: 'Failed to process order. Please try again.' });
       } finally {
@@ -282,7 +285,7 @@ export default function CheckoutForm() {
         {isLoading && <LoadingOverlay />}
       </AnimatePresence>
 
-      {isSuccess ? (
+      {isComplete ? (
         <SuccessScreen />
       ) : (
         <>
@@ -391,18 +394,6 @@ export default function CheckoutForm() {
                           <p className={errorClasses}>{errors.address}</p>
                         )}
                       </div>
-                      <div>
-                        <label htmlFor="apartment" className={labelClasses}>Apartment, suite, etc. (optional)</label>
-                        <input
-                          type="text"
-                          id="apartment"
-                          name="apartment"
-                          value={formData.apartment}
-                          onChange={handleInputChange}
-                          className={getInputStyles('apartment')}
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                           <label htmlFor="city" className={labelClasses}>City</label>
                           <input
@@ -418,51 +409,127 @@ export default function CheckoutForm() {
                             <p className={errorClasses}>{errors.city}</p>
                           )}
                         </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                          <label htmlFor="state" className={labelClasses}>State</label>
+                          <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
                           <input
                             type="text"
-                            id="state"
-                            name="state"
-                            value={formData.state}
+                            id="postcode"
+                            name="postcode"
+                            value={formData.postcode}
                             onChange={handleInputChange}
-                            className={getInputStyles('state')}
+                            className={getInputStyles('postcode')}
                             required
                           />
-                          {errors.state && (
-                            <p className={errorClasses}>{errors.state}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label htmlFor="zipCode" className={labelClasses}>ZIP Code</label>
-                          <input
-                            type="text"
-                            id="zipCode"
-                            name="zipCode"
-                            value={formData.zipCode}
-                            onChange={handleInputChange}
-                            className={getInputStyles('zipCode')}
-                            required
-                          />
-                          {errors.zipCode && (
-                            <p className={errorClasses}>{errors.zipCode}</p>
+                          {errors.postcode && (
+                            <p className={errorClasses}>{errors.postcode}</p>
                           )}
                         </div>
                       </div>
-                      <div>
-                        <label htmlFor="shippingMethod" className={labelClasses}>Shipping Method</label>
-                        <select
-                          id="shippingMethod"
-                          name="shippingMethod"
-                          value={formData.shippingMethod}
-                          onChange={handleInputChange}
-                          className={getInputStyles('shippingMethod')}
-                          required
-                        >
-                          <option value="standard">Standard Shipping (Free)</option>
-                          <option value="express">Express Shipping ($15)</option>
-                          <option value="overnight">Overnight Shipping ($25)</option>
-                        </select>
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2 text-text-primary dark:text-dark-text-primary">
+                          Shipping Method
+                        </label>
+                        <div className="mt-2 space-y-3">
+                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
+                            formData.shippingMethod === 'RoyalMailTracked48' 
+                              ? 'border-accent bg-accent/5' 
+                              : 'border-secondary/20 hover:border-accent/30'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value="RoyalMailTracked48"
+                              checked={formData.shippingMethod === 'RoyalMailTracked48'}
+                              onChange={handleInputChange}
+                              className="sr-only"
+                            />
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="block font-medium">Royal Mail Tracked 48</span>
+                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                                  Delivery within 2-3 working days with tracking updates
+                                </span>
+                              </div>
+                              <span className="font-medium">€3.39</span>
+                            </div>
+                          </label>
+                          
+                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
+                            formData.shippingMethod === 'RoyalMailTracked24' 
+                              ? 'border-accent bg-accent/5' 
+                              : 'border-secondary/20 hover:border-accent/30'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value="RoyalMailTracked24"
+                              checked={formData.shippingMethod === 'RoyalMailTracked24'}
+                              onChange={handleInputChange}
+                              className="sr-only"
+                            />
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="block font-medium">Royal Mail Tracked 24</span>
+                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                                  Super convenient next day delivery with notifications for the recipient
+                                </span>
+                              </div>
+                              <span className="font-medium">€4.25</span>
+                            </div>
+                          </label>
+                          
+                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
+                            formData.shippingMethod === 'RoyalMailSigned1stClass' 
+                              ? 'border-accent bg-accent/5' 
+                              : 'border-secondary/20 hover:border-accent/30'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value="RoyalMailSigned1stClass"
+                              checked={formData.shippingMethod === 'RoyalMailSigned1stClass'}
+                              onChange={handleInputChange}
+                              className="sr-only"
+                            />
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="block font-medium">Royal Mail Signed 1st Class</span>
+                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                                  Priority delivery with recipient signature confirmation
+                                </span>
+                              </div>
+                              <span className="font-medium">€5.49</span>
+                            </div>
+                          </label>
+                          
+                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
+                            formData.shippingMethod === 'RoyalMailTracked24Signed' 
+                              ? 'border-accent bg-accent/5' 
+                              : 'border-secondary/20 hover:border-accent/30'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="shippingMethod"
+                              value="RoyalMailTracked24Signed"
+                              checked={formData.shippingMethod === 'RoyalMailTracked24Signed'}
+                              onChange={handleInputChange}
+                              className="sr-only"
+                            />
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="block font-medium">Royal Mail Tracked 24 Signed</span>
+                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                                  Premium next day delivery with tracking and signature on delivery
+                                </span>
+                              </div>
+                              <span className="font-medium">€5.65</span>
+                            </div>
+                          </label>
+                        </div>
+                        {errors.shippingMethod && (
+                          <p className="mt-1 text-sm text-red-500">{errors.shippingMethod}</p>
+                        )}
                       </div>
                     </div>
                   )}

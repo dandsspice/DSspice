@@ -1,8 +1,12 @@
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import CheckoutForm from '../components/checkout/CheckoutForm';
 import BackButton from '../components/common/BackButton';
 
 export default function CheckoutPage() {
+  const location = useLocation();
+  const orderData = location.state;
+
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,7 +24,7 @@ export default function CheckoutPage() {
           </h1>
         </motion.div>
 
-        <CheckoutForm />
+        <CheckoutForm orderData={orderData} />
       </div>
     </div>
   );

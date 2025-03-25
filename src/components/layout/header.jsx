@@ -27,9 +27,8 @@ export default function Header() {
 
   const navigation = [
     { name: 'Home', to: '/' },
-    { name: 'Products', to: '/products' },
     { name: 'About', section: 'about' },
-    { name: 'Contact', section: 'contact' }
+    { name: 'Contact Us', to: '/contact' }
   ];
 
   const linkStyles = "text-sm font-medium text-text-primary transition-colors duration-200 hover:text-accent";
@@ -82,7 +81,7 @@ export default function Header() {
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               <Link
-                to="/products"
+                to="/order"
                 className="hidden md:block px-4 py-2 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
               >
                 Order Now
@@ -155,7 +154,7 @@ export default function Header() {
               </div>
               <div className="py-6">
                 <Link
-                  to="/products"
+                  to="/order"
                   className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
                 >
                   Order Now

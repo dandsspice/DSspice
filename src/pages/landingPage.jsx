@@ -109,13 +109,13 @@ export default function LandingPage() {
             <div className="hidden md:flex md:items-center md:space-x-8">
               {navigation.map((item) => (
                 item.to.startsWith('#') ? (
-                  <button
+            <button
                     key={item.name}
                     onClick={item.action}
                     className="text-sm font-medium transition-colors duration-200 hover:text-accent"
                   >
                     {item.name}
-                  </button>
+            </button>
                 ) : (
                   <Link
                     key={item.name}
@@ -123,19 +123,19 @@ export default function LandingPage() {
                     onClick={item.action}
                     className="text-sm font-medium transition-colors duration-200 hover:text-accent"
                   >
-                    {item.name}
+                {item.name}
                   </Link>
                 )
-              ))}
-            </div>
+            ))}
+          </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               <Link
-                to="/products"
+                to="/order"
                 className="hidden md:block px-4 py-2 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-              >
-                Order Now
+            >
+              Order Now
               </Link>
 
               {/* Mobile Menu Button */}
@@ -195,19 +195,19 @@ export default function LandingPage() {
                       </button>
                     ) : (
                       <Link
-                        key={item.name}
+                      key={item.name}
                         to={item.to}
                         onClick={() => setMobileMenuOpen(false)}
                         className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
-                      >
-                        {item.name}
+                    >
+                      {item.name}
                       </Link>
                     )
                   ))}
                 </div>
                 <div className="py-6">
                   <Link
-                  to="/products"
+                  to="/order"
                   className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
                   >
                     Order Now
@@ -246,7 +246,7 @@ export default function LandingPage() {
             <AnimatedText delay={0.4}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  to="/products"
+                  to="/order"
                   className="w-full sm:w-auto">
                   <Button
                     variant="primary"
@@ -275,7 +275,7 @@ export default function LandingPage() {
           {/* Updated ScrollIndicator usage */}
           <ScrollIndicator onClick={() => scrollToSection(aboutRef)} />
         </div>
-      </div>
+            </div>
 
       {/* Enhanced Features Section */}
       <section className="py-20 sm:py-32">
@@ -359,7 +359,7 @@ export default function LandingPage() {
                 <p className="text-lg font-medium italic text-accent">
                   {landingPageData.about.mission}
                 </p>
-              </div>
+        </div>
 
               <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {landingPageData.about.values.map((value) => (
@@ -424,7 +424,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/products"
+              to="/order"
               className="w-full sm:w-auto"
             >
               <Button
