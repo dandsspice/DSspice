@@ -155,7 +155,7 @@ export default function CheckoutForm({ orderData }) {
                 {order.size.weight} × {quantity}
               </p>
             </div>
-            <p className="font-medium">${productPrice.toFixed(2)}</p>
+            <p className="font-medium">€{productPrice.toFixed(2)}</p>
           </div>
           
           <div className="flex justify-between pb-4 border-b border-secondary/10">
@@ -170,7 +170,7 @@ export default function CheckoutForm({ orderData }) {
           
           <div className="flex justify-between text-lg font-bold">
             <p>Total</p>
-            <p>${total.toFixed(2)}</p>
+            <p>€{total.toFixed(2)}</p>
           </div>
         </div>
       </div>

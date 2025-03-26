@@ -72,7 +72,7 @@ export default function OrderPage() {
       <button
         onClick={() => handleQuantityChange(-1)}
         disabled={quantity <= 1}
-        className={`p-2 rounded-full ${
+        className={`p-2 rounded-full €{
           quantity <= 1 
             ? 'bg-secondary/10 text-text-secondary cursor-not-allowed' 
             : 'bg-background-alt dark:bg-dark-background-alt hover:bg-accent/10'
@@ -88,7 +88,7 @@ export default function OrderPage() {
       <button
         onClick={() => handleQuantityChange(1)}
         disabled={quantity >= 10}
-        className={`p-2 rounded-full ${
+        className={`p-2 rounded-full €{
           quantity >= 10 
             ? 'bg-secondary/10 text-text-secondary cursor-not-allowed' 
             : 'bg-background-alt dark:bg-dark-background-alt hover:bg-accent/10'
@@ -178,7 +178,7 @@ export default function OrderPage() {
                 <button
                 key={size.id}
                 onClick={() => setSelectedSize(size)}
-              className={`p-4 rounded-xl text-center transition-all ${
+              className={`p-4 rounded-xl text-center transition-all €{
                   selectedSize?.id === size.id 
                     ? 'bg-accent/20 border-2 border-accent' 
                     : 'bg-background-alt dark:bg-dark-background-alt border-2 border-transparent hover:border-accent/30'
@@ -186,7 +186,7 @@ export default function OrderPage() {
               >
               <div className="flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center sm:gap-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center €{
                     selectedSize?.id === size.id ? 'border-accent bg-accent' : 'border-secondary'
                   }`}>
                     {selectedSize?.id === size.id && (
@@ -203,7 +203,7 @@ export default function OrderPage() {
                   </div>
                 </div>
                 <p className="text-accent font-bold">
-                    ${size.price.toFixed(2)}
+                    €{size.price.toFixed(2)}
                   </p>
                 </div>
               </button>
@@ -245,7 +245,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per unit:</span>
-                    <span>${selectedSize.price.toFixed(2)}</span>
+                    <span>€{selectedSize.price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Quantity:</span>
@@ -253,7 +253,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between font-bold pt-2 border-t border-accent/20">
                     <span>Subtotal:</span>
-                    <span>${(selectedSize.price * quantity).toFixed(2)}</span>
+                    <span>€{(selectedSize.price * quantity).toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-2">
                     *Shipping costs will be calculated at checkout
