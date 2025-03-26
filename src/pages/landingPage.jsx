@@ -258,7 +258,7 @@ export default function LandingPage() {
                 </Link>
                 <button
                   onClick={() => scrollToSection(aboutRef)}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-primary"
                 >
                   <Button
                     variant="outline"

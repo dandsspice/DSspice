@@ -12,7 +12,7 @@ export const landingPageData = {
     title: "About D&Sspice",
     description: "For generations, African kitchens have relied on locust beans to bring warmth, richness, and authenticity to their meals. At D&Sspice, we are proud to continue this legacy by providing you with the best quality locust beans, sourced with care and delivered with love.",
     mission: "Cooking isn't just about feeding the body—it's about celebrating culture, creating memories, and savoring every bite. Let D&Sspice be part of your kitchen, your heritage, your story, and your journey to extraordinary flavors.",
-    imageSrc: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&h=800",
+    imageSrc: "images/aboutBanner.jpeg",
     values: [
       {
         title: "Tradition",
@@ -42,25 +42,25 @@ export const landingPageData = {
       {
         title: "100% Natural & Organic",
         description: "We believe the best flavors come straight from nature. Our locust beans are pure, sandfree, unprocessed, and completely free from artificial additives or preservatives.",
-        imageSrc: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&h=600",
+        imageSrc: "images/featureImg1.jpeg",
         imageAlt: "Natural and organic locust beans"
       },
       {
         title: "Rich, Bold Flavor That Transforms Your Cooking",
         description: "Imagine the deep, smoky aroma of locust beans enhancing your favorite dishes—Egusi soup, Efo Riro, Okro, Native Jollof rice, Banga soup, and more!",
-        imageSrc: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&h=600",
+        imageSrc: "images/featureImg2.jpeg",
         imageAlt: "Traditional African dishes"
       },
       {
         title: "Nutrient-Packed Superfood",
         description: "Beyond taste, our dried locust beans are a powerhouse of nutrition, high in protein, rich in fiber, loaded with antioxidants, and a natural source of vitamins and minerals.",
-        imageSrc: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&h=600",
+        imageSrc: "images/featureImg3.jpeg",
         imageAlt: "Nutritional benefits illustration"
       },
       {
         title: "Fast, Reliable & Hassle-Free Delivery",
         description: "We ensure quick, efficient, and fresh delivery straight to your doorstep—anywhere in the UK. No delays, no stress—just premium locust beans ready to elevate your cooking.",
-        imageSrc: "https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?auto=format&fit=crop&w=800&h=600",
+        imageSrc: "images/featureImg4.jpeg",
         imageAlt: "Premium packaging and delivery"
       }
     ]
@@ -94,7 +94,7 @@ export const landingPageData = {
   hero: {
     title: "Bringing the Heart of African Flavor to Your Kitchen!",
     subtitle: "Premium Dried Locust Beans for the Ultimate Taste Experience",
-    backgroundImage: "images/heroBanner.jpg",
+    backgroundImage: "images/heroBanner.jpeg",
     cta: {
       primary: {
         text: "Shop Now",
@@ -102,7 +102,8 @@ export const landingPageData = {
       },
       secondary: {
         text: "Learn more",
-        href: "#learn-more"
+        href: "#learn-more",
+        lightTheme: "dark"
       }
     }
   }

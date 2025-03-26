@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import MainLayout from './components/layout/MainLayout'
 import { ThemeProvider } from './context/ThemeContext'
 import { LoadingProvider } from './context/LoadingContext'
@@ -9,6 +9,17 @@ import CheckoutPage from './pages/CheckoutPage'
 import ThemeToggle from './components/ThemeToggle'
 import ContactPage from './pages/ContactPage'
 import LoadingScreen from './components/common/LoadingScreen'
+
+// ScrollToTop component to handle scrolling to top on route changes
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +43,8 @@ export default function App() {
         <Router>
           <ThemeProvider>
             <LoadingProvider>
+              {/* Add ScrollToTop component inside Router */}
+              <ScrollToTop />
               <MainLayout>
                 <div className="min-h-screen bg-background dark:bg-dark-background text-text-primary dark:text-dark-text-primary">
                   {/* Fixed position theme toggle */}
