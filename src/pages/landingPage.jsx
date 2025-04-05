@@ -277,7 +277,7 @@ export default function LandingPage() {
         </div>
             </div>
 
-      {/* Enhanced Features Section */}
+      {/* Features Section */}
       <section className="py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedText className="text-center mb-16">
@@ -313,8 +313,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      {/* End Features Section */}
 
-      {/* Enhanced About Section with improved visibility animation */}
+
+      {/*  About Section with improved visibility animation */}
      <section id='about'>
      <AnimatedSection
         ref={aboutRef}
@@ -378,8 +380,10 @@ export default function LandingPage() {
         </motion.div>
       </AnimatedSection>
      </section>
+      {/*  End About Section with improved visibility animation */}
 
-      {/* Enhanced Testimonials Section */}
+
+      {/* Testimonials Section */}
       <section className="py-20 sm:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedText className="text-center mb-16">
@@ -411,6 +415,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      {/*End Testimonials Section */}
+
 
       {/* Enhanced CTA Section */}
       <AnimatedSection className="py-20 sm:py-32 bg-background-alt">

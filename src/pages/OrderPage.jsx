@@ -17,25 +17,27 @@ export default function OrderPage() {
     id: 'normal',
     name: 'Traditional Locust Beans',
     description: 'Authentic African locust beans, naturally fermented and carefully preserved for the ultimate taste experience. Perfect for soups, stews, and traditional African dishes.',
-    imageSrc: 'images/featureImg2.jpeg', 
     sizes: [
       {
         id: 'small',
         name: 'Small',
         weight: '100g',
-        price: 19.99
+        price: 19.99,
+        imageSrc: 'images/featureImg1.jpeg'
       },
       {
         id: 'medium',
         name: 'Medium',
         weight: '250g',
-        price: 39.99
+        price: 39.99,
+        imageSrc: 'images/featureImg2.jpeg'
       },
       {
         id: 'large',
         name: 'Large',
         weight: '500g',
-        price: 69.99
+        price: 69.99,
+        imageSrc: 'images/featureImg3.jpeg'
       }
     ]
   };
@@ -99,6 +101,9 @@ export default function OrderPage() {
     </div>
   );
 
+  // Get current image to display
+  const currentImage = selectedSize ? selectedSize.imageSrc : product.sizes[0].imageSrc;
+
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -131,10 +136,14 @@ export default function OrderPage() {
           >
             <div className="md:flex">
               <div className="md:w-2/5">
-                <img 
-                  src={product.imageSrc} 
+                <motion.img 
+                  key={currentImage}
+                  src={currentImage} 
                   alt={product.name} 
                   className="w-full h-64 md:h-full object-cover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
                 />
               </div>
               
