@@ -5,41 +5,69 @@ import Button from '../components/common/Button';
 import BackButton from '../components/common/BackButton';
 import { fadeInUp, staggerContainer } from '../animations/variants';
 import { PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 export default function OrderPage() {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Product information
   const product = {
     id: 'normal',
     name: 'Traditional Locust Beans',
     description: 'Authentic African locust beans, naturally fermented and carefully preserved for the ultimate taste experience. Perfect for soups, stews, and traditional African dishes.',
+    images: [
+      'images/featureImg2.jpeg',
+      'images/featureImg1.jpeg',
+      'images/featureImg3.jpeg'
+    ],
     sizes: [
       {
         id: 'small',
         name: 'Small',
         weight: '100g',
-        price: 19.99,
-        imageSrc: 'images/featureImg1.jpeg'
+        price: 19.99
       },
       {
         id: 'medium',
         name: 'Medium',
         weight: '250g',
-        price: 39.99,
-        imageSrc: 'images/featureImg2.jpeg'
+        price: 39.99
       },
       {
         id: 'large',
         name: 'Large',
         weight: '500g',
-        price: 69.99,
-        imageSrc: 'images/featureImg3.jpeg'
+        price: 69.99
       }
     ]
+  };
+
+  // Add useEffect for auto-sliding
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+    }, 3000); // 3000ms = 3 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []); 
+
+  // Function to handle manual navigation that resets the timer
+  const handleImageChange = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  // The next and previous functions to use the new handler
+  const nextImage = () => {
+    handleImageChange((currentImageIndex + 1) % product.images.length);
+  };
+
+  const previousImage = () => {
+    handleImageChange((currentImageIndex - 1 + product.images.length) % product.images.length);
   };
 
   const handleQuantityChange = (value) => {
@@ -101,9 +129,6 @@ export default function OrderPage() {
     </div>
   );
 
-  // Get current image to display
-  const currentImage = selectedSize ? selectedSize.imageSrc : product.sizes[0].imageSrc;
-
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -135,16 +160,42 @@ export default function OrderPage() {
             className="overflow-hidden rounded-xl shadow-lg bg-background-alt dark:bg-dark-background-alt"
           >
             <div className="md:flex">
-              <div className="md:w-2/5">
-                <motion.img 
-                  key={currentImage}
-                  src={currentImage} 
-                  alt={product.name} 
-                  className="w-full h-64 md:h-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
+              <div className="md:w-2/5 relative">
+                <div className="relative h-64 md:h-full">
+                  <img 
+                    src={product.images[currentImageIndex]} 
+                    alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                    className="w-full h-full object-cover transition-opacity duration-500"
+                  />
+                  
+                  {/* Navigation Buttons */}
+                  <button 
+                    onClick={previousImage}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronLeftIcon className="w-6 h-6" />
+                  </button>
+                  
+                  <button 
+                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRightIcon className="w-6 h-6" />
+                  </button>
+
+                  {/* Image Indicators */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                    {product.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleImageChange(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          currentImageIndex === index ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
               
               <div className="p-6 md:w-3/5">
