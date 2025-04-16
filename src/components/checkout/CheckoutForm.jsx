@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../common/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import authService from '../../api/authService';
+import orderService from '../../api/orderService';
 
 // Add these utility functions at the top of the file
 const formatPhoneNumber = (value) => {
@@ -44,8 +46,12 @@ export default function CheckoutForm({ orderData }) {
     cardName: '',
     expiryDate: '',
     cvv: '',
-    shippingMethod: 'RoyalMailTracked48' // Default shipping method
+    shippingMethod: 'RoyalMailTracked48',
+    password: '',
+    confirmPassword: '',
   });
+  const [authMode, setAuthMode] = useState('login');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
   
   // Get order data from location state
@@ -53,6 +59,20 @@ export default function CheckoutForm({ orderData }) {
     type: 'powdered',
     size: { id: 'medium', name: 'Medium', weight: '250g', price: 39.99 }
   };
+
+  // Check for existing authentication on component mount
+  useEffect(() => {
+    const userData = authService.getCurrentUser();
+    if (userData && authService.isAuthenticated()) {
+      setIsAuthenticated(true);
+      setFormData(prev => ({
+        ...prev,
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        email: userData.email || ''
+      }));
+    }
+  }, []);
 
   // Add a function to get shipping cost based on selected method
   const getShippingCost = (method) => {
@@ -74,7 +94,31 @@ export default function CheckoutForm({ orderData }) {
   const validateStep = (stepNumber) => {
     const newErrors = {};
     
-    if (stepNumber === 3) { // Payment step
+    if (stepNumber === 1 && !isAuthenticated) {
+      // Validate auth fields
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      }
+      if (!formData.password.trim()) {
+        newErrors.password = 'Password is required';
+      }
+      if (authMode === 'signup') {
+        if (!formData.firstName.trim()) {
+          newErrors.firstName = 'First name is required';
+        }
+        if (!formData.lastName.trim()) {
+          newErrors.lastName = 'Last name is required';
+        }
+        if (!formData.phone.trim()) {
+          newErrors.phone = 'Phone number is required';
+        }
+        if (!formData.confirmPassword.trim()) {
+          newErrors.confirmPassword = 'Please confirm your password';
+        } else if (formData.password !== formData.confirmPassword) {
+          newErrors.confirmPassword = 'Passwords do not match';
+        }
+      }
+    } else if (stepNumber === 3) {
       // Only check if fields are not empty
       if (!formData.cardName.trim()) {
         newErrors.cardName = 'Name on card is required';
@@ -268,11 +312,76 @@ export default function CheckoutForm({ orderData }) {
     if (validateStep(3)) {
       setIsLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const orderData = {
+          items: [{
+            type: order.type,
+            size: order.size,
+            quantity: order.quantity || 1
+          }],
+          shipping: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            postcode: formData.postcode,
+            method: formData.shippingMethod
+          },
+          payment: {
+            cardName: formData.cardName,
+            cardNumber: formData.cardNumber,
+            expiryDate: formData.expiryDate,
+            cvv: formData.cvv
+          },
+          total: getTotalWithShipping()
+        };
+
+        await orderService.createOrder(orderData);
         setIsComplete(true);
       } catch (error) {
-        setErrors({ submit: 'Failed to process order. Please try again.' });
+        setErrors({ 
+          submit: error.message || 'Failed to process order. Please try again.' 
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleAuth = async () => {
+    if (validateStep(1)) {
+      setIsLoading(true);
+      try {
+        let response;
+        if (authMode === 'login') {
+          response = await authService.login(formData.email, formData.password);
+        } else {
+          response = await authService.signup({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            password: formData.password
+          });
+        }
+        
+        // Update form data with user info
+        const userData = authService.getCurrentUser();
+        setFormData(prev => ({
+          ...prev,
+          firstName: userData.firstName || prev.firstName,
+          lastName: userData.lastName || prev.lastName,
+          email: userData.email || prev.email,
+          phone: userData.phone || prev.phone
+        }));
+        
+        setIsAuthenticated(true);
+        setStep(2);
+      } catch (error) {
+        setErrors({ 
+          auth: error.message || 'Authentication failed. Please try again.' 
+        });
       } finally {
         setIsLoading(false);
       }
@@ -291,8 +400,8 @@ export default function CheckoutForm({ orderData }) {
         <>
           <ProgressSteps />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+          <div className={`grid grid-cols-1 ${isAuthenticated ? 'lg:grid-cols-3' : 'lg:grid-cols-1 lg:max-w-2xl lg:mx-auto'} gap-8`}>
+            <div className={isAuthenticated ? 'lg:col-span-2' : ''}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step}
@@ -303,7 +412,146 @@ export default function CheckoutForm({ orderData }) {
                   className="bg-background dark:bg-dark-background rounded-lg p-6 shadow-lg"
                 >
                   {/* Step 1: Personal Information */}
-                  {step === 1 && (
+                  {step === 1 && !isAuthenticated ? (
+                    <div className="space-y-6">
+                      <h2 className="text-3xl text-center  font-bold mb-6">
+                        {authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
+                      </h2>
+                      
+                      {authMode === 'signup' && (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label htmlFor="firstName" className={labelClasses}>First Name</label>
+                              <input
+                                type="text"
+                                id="firstName"
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                                className={getInputStyles('firstName')}
+                                required
+                              />
+                              {errors.firstName && (
+                                <p className={errorClasses}>{errors.firstName}</p>
+                              )}
+                            </div>
+                            <div>
+                              <label htmlFor="lastName" className={labelClasses}>Last Name</label>
+                              <input
+                                type="text"
+                                id="lastName"
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                                className={getInputStyles('lastName')}
+                                required
+                              />
+                              {errors.lastName && (
+                                <p className={errorClasses}>{errors.lastName}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Add phone number field */}
+                          <div>
+                            <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                            <input
+                              type="tel"
+                              id="phone"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              className={getInputStyles('phone')}
+                              placeholder="+2341234567890"
+                              required
+                            />
+                            {errors.phone && (
+                              <p className={errorClasses}>{errors.phone}</p>
+                            )}
+                            <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
+                              Type your number after +234
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <label htmlFor="email" className={labelClasses}>Email</label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={getInputStyles('email')}
+                          required
+                        />
+                        {errors.email && (
+                          <p className={errorClasses}>{errors.email}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="password" className={labelClasses}>Password</label>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          className={getInputStyles('password')}
+                          required
+                        />
+                        {errors.password && (
+                          <p className={errorClasses}>{errors.password}</p>
+                        )}
+                      </div>
+                      
+                      {authMode === 'signup' && (
+                        <div>
+                          <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password</label>
+                          <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
+                            className={getInputStyles('confirmPassword')}
+                            required
+                          />
+                          {errors.confirmPassword && (
+                            <p className={errorClasses}>{errors.confirmPassword}</p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {errors.auth && (
+                        <p className="text-red-500 text-sm mt-2">{errors.auth}</p>
+                      )}
+                      
+                      <div className="flex flex-col space-y-4">
+                        <Button
+                          variant="primary"
+                          onClick={handleAuth}
+                          className="w-full"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Create Account'}
+                        </Button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                          className="text-sm text-accent hover:underline"
+                        >
+                          {authMode === 'login' 
+                            ? "Don't have an account? Sign up" 
+                            : 'Already have an account? Login'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -623,7 +871,7 @@ export default function CheckoutForm({ orderData }) {
                   </Button>
                 )}
                 <div className="ml-auto">
-                  {step < 3 ? (
+                  {step === 1 && !isAuthenticated ? null : step < 3 ? (
                     <Button
                       variant="primary"
                       onClick={handleNext}
@@ -645,9 +893,12 @@ export default function CheckoutForm({ orderData }) {
               </div>
             </div>
 
+            {/* Only show Order Summary after authentication */}
+            {isAuthenticated && (
             <div className="lg:col-span-1">
               <OrderSummary />
             </div>
+            )}
           </div>
         </>
       )}
