@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { cookies } from '../utils/cookies';
 
-// Create a base axios instance
+ 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://api.dspice.co.uk/api/', // Using Vite's env format
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.dspice.co.uk/api/', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   }
 });
 
-// Request interceptor for adding auth token
+ 
 api.interceptors.request.use(
   (config) => {
     const token = cookies.getToken();
@@ -24,7 +24,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling errors
+// Response  for handling errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {

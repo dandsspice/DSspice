@@ -366,18 +366,22 @@ export default function CheckoutForm({ orderData }) {
           });
         }
         
-        // Update form data with user info
-        const userData = authService.getCurrentUser();
-        setFormData(prev => ({
-          ...prev,
-          firstName: userData.firstName || prev.firstName,
-          lastName: userData.lastName || prev.lastName,
-          email: userData.email || prev.email,
-          phone: userData.phone || prev.phone
-        }));
-        
-        setIsAuthenticated(true);
-        setStep(2);
+        if (response.code === 200) {
+          // Update form data with user info from response
+          const userData = response.data;
+          setFormData(prev => ({
+            ...prev,
+            firstName: userData.first_name || prev.firstName,
+            lastName: userData.last_name || prev.lastName,
+            email: userData.email || prev.email,
+            phone: userData.phone_number || prev.phone
+          }));
+          
+          setIsAuthenticated(true);
+          setStep(2);
+        } else {
+          throw new Error(response.message || 'Authentication failed');
+        }
       } catch (error) {
         setErrors({ 
           auth: error.message || 'Authentication failed. Please try again.' 
