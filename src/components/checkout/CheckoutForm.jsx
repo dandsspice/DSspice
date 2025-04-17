@@ -369,16 +369,16 @@ export default function CheckoutForm({ orderData }) {
         if (response.code === 200) {
           // Update form data with user info from response
           const userData = response.data;
-          setFormData(prev => ({
-            ...prev,
+        setFormData(prev => ({
+          ...prev,
             firstName: userData.first_name || prev.firstName,
             lastName: userData.last_name || prev.lastName,
-            email: userData.email || prev.email,
+          email: userData.email || prev.email,
             phone: userData.phone_number || prev.phone
-          }));
-          
-          setIsAuthenticated(true);
-          setStep(2);
+        }));
+        
+        setIsAuthenticated(true);
+        setStep(2);
         } else {
           throw new Error(response.message || 'Authentication failed');
         }
@@ -392,8 +392,44 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
+  // Add this near the top of the component, after the state declarations
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setStep(1);
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      address: '',
+      city: '',
+      postcode: '',
+      cardNumber: '',
+      cardName: '',
+      expiryDate: '',
+      cvv: '',
+      shippingMethod: 'RoyalMailTracked48',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4">
+      {/* Add this section for the logout button */}
+      {isAuthenticated && (
+        <div className="flex justify-end mb-6">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="text-sm"
+          >
+            Logout
+          </Button>
+        </div>
+      )}
+
       <AnimatePresence>
         {isLoading && <LoadingOverlay />}
       </AnimatePresence>
