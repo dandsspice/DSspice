@@ -292,7 +292,7 @@ export default function CheckoutForm({ orderData }) {
     </motion.div>
   );
 
-  // Add loading overlay component
+  // loading overlay component
   const LoadingOverlay = () => (
     <motion.div
       initial={{ opacity: 0 }}
@@ -307,7 +307,7 @@ export default function CheckoutForm({ orderData }) {
     </motion.div>
   );
 
-  // Enhanced form submission
+  // Form submission
   const handleSubmit = async () => {
     if (validateStep(3)) {
       setIsLoading(true);
@@ -371,7 +371,7 @@ export default function CheckoutForm({ orderData }) {
         }
         
         if (response.code === 200) {
-          // Update form data with user info from response
+          // Form data with user info from response
           const userData = response.data;
           setFormData(prev => ({
             ...prev,
@@ -396,7 +396,6 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
-  // Add this near the top of the component, after the state declarations
   const handleLogout = () => {
     authService.logout();
     setIsAuthenticated(false);
@@ -421,7 +420,7 @@ export default function CheckoutForm({ orderData }) {
 
   return (
     <div className="max-w-6xl mx-auto px-4">
-      {/* Add this section for the logout button */}
+      {/* Logout button */}
       {isAuthenticated && (
         <div className="flex justify-end mb-6">
           <Button
@@ -497,7 +496,7 @@ export default function CheckoutForm({ orderData }) {
                             </div>
                           </div>
 
-                          {/* Add phone number field */}
+                          {/* Phone number field */}
                           <div>
                             <label htmlFor="phone" className={labelClasses}>Phone Number</label>
                             <input
@@ -937,7 +936,7 @@ export default function CheckoutForm({ orderData }) {
               </div>
             </div>
 
-            {/* Only show Order Summary after authentication */}
+            {/* Order Summary after authentication */}
             {isAuthenticated && (
             <div className="lg:col-span-1">
               <OrderSummary />

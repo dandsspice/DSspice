@@ -83,7 +83,7 @@ export const products = [
     inStock: true,
     category: "premium"
   },
-  // Add more products as needed
+ 
 ];
 
 export const categories = [

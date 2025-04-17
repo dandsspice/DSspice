@@ -25,7 +25,7 @@ import Button from '../components/common/Button'
 import ScrollIndicator from '../components/common/ScrollIndicator'
 import { Link, useLocation } from 'react-router-dom'
 
-// Enhanced gradient overlay with better opacity
+// Gradient overlay with better opacity
 const GradientOverlay = () => (
   <div className="absolute inset-0 bg-gradient-to-b from-black/100 via-black/40 to-transparent" />
 );
@@ -43,9 +43,9 @@ export default function LandingPage() {
   const aboutInViewRef = useRef(null);
   const isAboutInView = useInView(aboutInViewRef, { once: true });
 
-  // Enhanced smooth scroll function
+  // smooth scroll function
   const scrollToSection = (elementRef) => {
-    const yOffset = -80; // Adjust for header height
+    const yOffset = -80; // Header height
     const element = elementRef.current;
     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
@@ -65,7 +65,7 @@ export default function LandingPage() {
   }))
 
   useEffect(() => {
-    // Check if we have a section to scroll to and if we should scroll
+    // Check if we have a section to scroll to and if to scroll
     if (location.state?.scrollTo && location.state?.shouldScroll) {
       // Small delay to ensure the page has loaded
       const timeoutId = setTimeout(() => {
@@ -85,7 +85,7 @@ export default function LandingPage() {
 
   return (
     <div className={`bg-background ${darkMode ? 'dark' : ''}`}>
-      {/* Enhanced Header with Better Mobile Experience */}
+      {/*  Header  */}
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}

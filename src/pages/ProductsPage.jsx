@@ -56,7 +56,7 @@ export default function ProductsPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Enhanced Categories Section */}
+        {/*  Categories Section */}
         <div className="relative mb-8">
           {/* Scrollable Container */}
           <div className="flex overflow-x-auto gap-2 sm:gap-4 pb-4 no-scrollbar 

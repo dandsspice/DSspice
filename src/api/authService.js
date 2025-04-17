@@ -4,7 +4,7 @@ import { cookies } from '../utils/cookies';
 const authService = {
   login: async (email, password) => {
     try {
-      // Create FormData object to match API requirements
+      // FormData object to match API requirements
       const formData = new FormData();
       formData.append('email', email);
       formData.append('password', password);
@@ -43,7 +43,7 @@ const authService = {
       formData.append('password', userData.password);
       formData.append('confirm_password', userData.password);
 
-      // Use the api instance instead of full URL
+      // Api instance instead of full URL
       const response = await api.post('/auth/register', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

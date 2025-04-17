@@ -57,10 +57,10 @@ export default function App() {
                     <Route path="/order" element={<OrderPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    {/* Removed other routes */}
+                    
                   </Routes>
                   
-                  {/* Removed CartDrawer */}
+                  
                 </div>
               </MainLayout>
             </LoadingProvider>

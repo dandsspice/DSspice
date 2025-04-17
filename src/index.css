@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Enable dark mode using class strategy */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {

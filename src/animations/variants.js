@@ -11,7 +11,7 @@ export const fadeInUp = {
     scale: 1,
     transition: {
       duration: 0.8,
-      ease: [0.6, -0.05, 0.01, 0.99] // Custom easing for smooth motion
+      ease: [0.6, -0.05, 0.01, 0.99] //  easing for smooth motion
     }
   }
 };

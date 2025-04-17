@@ -19,7 +19,6 @@ const orderService = {
     }
   },
 
-  // Add more order-related API calls as needed
 };
 
 export default orderService; 

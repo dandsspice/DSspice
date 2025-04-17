@@ -80,7 +80,7 @@ export default function OrderPage() {
     
     setIsLoading(true);
     
-    // Simulate a small delay for better UX
+    // A small delay for better UX
     setTimeout(() => {
       window.scrollTo(0, 0);
       // Pass the selection data to checkout page through navigation state
