@@ -356,6 +356,10 @@ export default function CheckoutForm({ orderData }) {
         let response;
         if (authMode === 'login') {
           response = await authService.login(formData.email, formData.password);
+          
+          if (response.code !== 200) {
+            throw new Error(response.message || 'Login failed');
+          }
         } else {
           response = await authService.signup({
             firstName: formData.firstName,
@@ -369,16 +373,16 @@ export default function CheckoutForm({ orderData }) {
         if (response.code === 200) {
           // Update form data with user info from response
           const userData = response.data;
-        setFormData(prev => ({
-          ...prev,
+          setFormData(prev => ({
+            ...prev,
             firstName: userData.first_name || prev.firstName,
             lastName: userData.last_name || prev.lastName,
-          email: userData.email || prev.email,
+            email: userData.email || prev.email,
             phone: userData.phone_number || prev.phone
-        }));
-        
-        setIsAuthenticated(true);
-        setStep(2);
+          }));
+          
+          setIsAuthenticated(true);
+          setStep(2);
         } else {
           throw new Error(response.message || 'Authentication failed');
         }
