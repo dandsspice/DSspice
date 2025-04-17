@@ -3,9 +3,10 @@ import { cookies } from '../utils/cookies';
 
  
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://api.dspice.co.uk/api/', 
+  baseURL: 'https://api.dspice.co.uk/api',
   timeout: 10000,
   headers: {
+    'Accept': 'application/json',
     'Content-Type': 'application/json',
   }
 });
@@ -51,4 +52,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default api;

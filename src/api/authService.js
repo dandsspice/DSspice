@@ -30,7 +30,8 @@ const authService = {
       formData.append('password', userData.password);
       formData.append('confirm_password', userData.password);
 
-      const response = await api.post('https://api.dspice.co.uk/api/auth/register', formData, {
+      // Use the api instance instead of full URL
+      const response = await api.post('/auth/register', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -59,4 +60,4 @@ const authService = {
   }
 };
 
-export default authService; 
+export default authService;
