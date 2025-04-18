@@ -1,19 +1,15 @@
 import axios from 'axios';
 import { cookies } from '../utils/cookies';
 
-const baseURL = import.meta.env.DEV 
-  ? import.meta.env.VITE_API_URL_DEV
-  : import.meta.env.VITE_API_URL;
+// Always use relative URL for both development and production
+const baseURL = '/api';
 
 const api = axios.create({
   baseURL,
   timeout: 10000,
   headers: {
     'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Content-Type': 'application/json'
   }
 });
 
