@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://api.dspice.co.uk/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
