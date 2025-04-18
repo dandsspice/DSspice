@@ -11,7 +11,7 @@ const api = axios.create({
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://api.dspice.co.uk',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   }
@@ -22,7 +22,7 @@ api.interceptors.request.use(
   (config) => {
     // Handle preflight requests
     if (config.method === 'options') {
-      config.headers['Access-Control-Allow-Origin'] = 'https://api.dspice.co.uk';
+      config.headers['Access-Control-Allow-Origin'] = '*';
       config.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS';
       config.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
     }
