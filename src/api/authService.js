@@ -60,8 +60,53 @@ const authService = {
     }
   },
 
-  logout: () => {
-    cookies.clearAuth();
+  logout: async () => {
+    try {
+      const token = cookies.getToken();
+      console.log('Token before logout:', token); // Debug line
+      
+      const response = await api.get('/auth/logout', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('Logout response:', response.data); // Debug line
+      
+      cookies.clearAuth();
+      return response.data;
+    } catch (error) {
+      console.error('Logout error:', error); // Debug line
+      cookies.clearAuth();
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred during logout',
+        data: null,
+        errors: null
+      };
+    }
+  },
+
+  getUserProfile: async () => {
+    try {
+      const token = cookies.getToken();
+      
+      const response = await api.get('/user/get', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      // Return error in the same format as the API
+      return error.response?.data || {
+        code: 401,
+        message: "No token passed",
+        data: null,
+        errors: null
+      };
+    }
   },
 
   getCurrentUser: () => {

@@ -60,18 +60,27 @@ export default function CheckoutForm({ orderData }) {
     size: { id: 'medium', name: 'Medium', weight: '250g', price: 39.99 }
   };
 
-  // Check for existing authentication on component mount
+  // Modify the existing useEffect to load user profile
   useEffect(() => {
-    const userData = authService.getCurrentUser();
-    if (userData && authService.isAuthenticated()) {
-      setIsAuthenticated(true);
-      setFormData(prev => ({
-        ...prev,
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        email: userData.email || ''
-      }));
-    }
+    const loadUserData = async () => {
+      if (authService.isAuthenticated()) {
+        setIsAuthenticated(true);
+        const response = await authService.getUserProfile();
+        
+        if (response.code === 200) {
+          // Pre-fill form with user data
+          setFormData(prev => ({
+            ...prev,
+            firstName: response.data.first_name || '',
+            lastName: response.data.last_name || '',
+            email: response.data.email || '',
+            phone: response.data.phone_number || ''
+          }));
+        }
+      }
+    };
+
+    loadUserData();
   }, []);
 
   // Add a function to get shipping cost based on selected method
@@ -350,49 +359,46 @@ export default function CheckoutForm({ orderData }) {
   };
 
   const handleAuth = async () => {
-    if (validateStep(1)) {
-      setIsLoading(true);
-      try {
-        let response;
-        if (authMode === 'login') {
-          response = await authService.login(formData.email, formData.password);
-          
-          if (response.code !== 200) {
-            throw new Error(response.message || 'Login failed');
-          }
-        } else {
-          response = await authService.signup({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            password: formData.password
-          });
-        }
-        
-        if (response.code === 200) {
-          // Form data with user info from response
-          const userData = response.data;
+    setIsLoading(true);
+    try {
+      let response;
+      if (authMode === 'login') {
+        response = await authService.login(formData.email, formData.password);
+      } else {
+        response = await authService.signup({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password
+        });
+      }
+
+      if (response.code === 200) {
+        setIsAuthenticated(true);
+        // Get fresh user profile data
+        const userProfile = await authService.getUserProfile();
+        if (userProfile.code === 200) {
           setFormData(prev => ({
             ...prev,
-            firstName: userData.first_name || prev.firstName,
-            lastName: userData.last_name || prev.lastName,
-            email: userData.email || prev.email,
-            phone: userData.phone_number || prev.phone
+            firstName: userProfile.data.first_name || prev.firstName,
+            lastName: userProfile.data.last_name || prev.lastName,
+            email: userProfile.data.email || prev.email,
+            phone: userProfile.data.phone_number || prev.phone
           }));
-          
-          setIsAuthenticated(true);
-          setStep(2);
-        } else {
-          throw new Error(response.message || 'Authentication failed');
         }
-      } catch (error) {
-        setErrors({ 
-          auth: error.message || 'Authentication failed. Please try again.' 
+        handleNext();
+      } else {
+        setErrors({
+          auth: response.message || 'Authentication failed'
         });
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      setErrors({
+        auth: error.message || 'An error occurred during authentication'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -416,6 +422,24 @@ export default function CheckoutForm({ orderData }) {
       password: '',
       confirmPassword: '',
     });
+  };
+
+  const loadUserProfile = async () => {
+    const response = await authService.getUserProfile();
+    
+    if (response.code === 200) {
+      // User data is available in response.data
+      setFormData(prev => ({
+        ...prev,
+        firstName: response.data.first_name,
+        lastName: response.data.last_name,
+        email: response.data.email,
+        phone: response.data.phone_number
+      }));
+    } else {
+      // Handle error - user might not be logged in
+      console.log(response.message);
+    }
   };
 
   return (
