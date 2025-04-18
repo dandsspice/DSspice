@@ -9,6 +9,7 @@ import CheckoutPage from './pages/CheckoutPage'
 import ThemeToggle from './components/ThemeToggle'
 import ContactPage from './pages/ContactPage'
 import LoadingScreen from './components/common/LoadingScreen'
+import TestUserProfile from './components/test/TestUserProfile'
 
 // ScrollToTop component to handle scrolling to top on route changes
 function ScrollToTop() {
@@ -57,7 +58,7 @@ export default function App() {
                     <Route path="/order" element={<OrderPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    
+                    <Route path="/test-profile" element={<TestUserProfile />} />
                   </Routes>
                   
                   

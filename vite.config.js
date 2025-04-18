@@ -7,13 +7,14 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss(),
   ],
-  // server: {
-  //   proxy: {
-  //     '/api': {
-  //       target: 'https://api.dspice.co.uk',
-  //       changeOrigin: true,
-  //       secure: false,
-  //     }
-  //   }
-  // }
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://api.dspice.co.uk',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
+      }
+    }
+  }
 })
