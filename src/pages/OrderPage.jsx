@@ -6,6 +6,7 @@ import BackButton from '../components/common/BackButton';
 import { fadeInUp, staggerContainer } from '../animations/variants';
 import { PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { cookies } from '../utils/cookies';
 
 export default function OrderPage() {
   const navigate = useNavigate();
@@ -46,6 +47,27 @@ export default function OrderPage() {
     ]
   };
 
+  // Load saved selections from cookies on mount
+  useEffect(() => {
+    const savedSelection = cookies.getOrderSelection();
+    if (savedSelection) {
+      setSelectedSize(savedSelection.size);
+      setQuantity(savedSelection.quantity);
+    }
+  }, []);
+
+  // Save selections to cookies whenever they change
+  useEffect(() => {
+    if (selectedSize) {
+      cookies.saveOrderSelection({
+        size: selectedSize,
+        quantity: quantity,
+        productId: product.id,
+        productName: product.name
+      });
+    }
+  }, [selectedSize, quantity]);
+
   // Add useEffect for auto-sliding
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -80,19 +102,21 @@ export default function OrderPage() {
     
     setIsLoading(true);
     
-    // A small delay for better UX
+    const orderData = {
+      type: product.id,
+      typeName: product.name,
+      size: selectedSize,
+      quantity: quantity,
+      totalPrice: selectedSize.price * quantity
+    };
+
+    // Save final selection to cookies before proceeding
+    cookies.saveOrderSelection(orderData);
+    
+    // Navigate to checkout
     setTimeout(() => {
       window.scrollTo(0, 0);
-      // Pass the selection data to checkout page through navigation state
-      navigate('/checkout', { 
-        state: { 
-          type: product.id,
-          typeName: product.name,
-          size: selectedSize,
-          quantity: quantity,
-          totalPrice: selectedSize.price * quantity
-        } 
-      });
+      navigate('/checkout', { state: orderData });
     }, 600);
   };
 

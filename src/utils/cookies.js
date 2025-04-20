@@ -8,6 +8,7 @@ const COOKIE_CONFIG = {
 
 export const AUTH_COOKIE_NAME = 'auth_token';
 export const USER_COOKIE_NAME = 'user_data';
+export const ORDER_SELECTION_COOKIE = 'order_selection';
 
 export const cookies = {
   // Set authentication data
@@ -31,5 +32,21 @@ export const cookies = {
   clearAuth: () => {
     Cookies.remove(AUTH_COOKIE_NAME);
     Cookies.remove(USER_COOKIE_NAME);
+  },
+
+  // Save order selection
+  saveOrderSelection: (selection) => {
+    Cookies.set(ORDER_SELECTION_COOKIE, JSON.stringify(selection), COOKIE_CONFIG);
+  },
+
+  // Get order selection
+  getOrderSelection: () => {
+    const selection = Cookies.get(ORDER_SELECTION_COOKIE);
+    return selection ? JSON.parse(selection) : null;
+  },
+
+  // Clear order selection
+  clearOrderSelection: () => {
+    Cookies.remove(ORDER_SELECTION_COOKIE);
   }
 }; 

@@ -1,11 +1,31 @@
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import CheckoutForm from '../components/checkout/CheckoutForm';
 import BackButton from '../components/common/BackButton';
+import { cookies } from '../utils/cookies';
 
 export default function CheckoutPage() {
   const location = useLocation();
-  const orderData = location.state;
+  const navigate = useNavigate();
+  const [orderData, setOrderData] = useState(null);
+  
+  useEffect(() => {
+    // Get order data from either navigation state or cookies
+    const data = location.state || cookies.getOrderSelection();
+    
+    if (!data) {
+      // Redirect to order page if no selection found
+      navigate('/order');
+      return;
+    }
+
+    setOrderData(data);
+  }, [location.state, navigate]);
+
+  if (!orderData) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="min-h-screen py-20">

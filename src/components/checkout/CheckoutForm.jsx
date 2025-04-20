@@ -53,6 +53,7 @@ export default function CheckoutForm({ orderData }) {
   const [authMode, setAuthMode] = useState('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -479,179 +480,71 @@ export default function CheckoutForm({ orderData }) {
                   className="bg-background dark:bg-dark-background rounded-lg p-6 shadow-lg"
                 >
                   {/* Step 1: Personal Information */}
-                  {step === 1 && !isAuthenticated ? (
-                    <div className="space-y-6">
-                      <h2 className="text-3xl text-center  font-bold mb-6">
-                        {authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
-                      </h2>
-                      
-                      {authMode === 'signup' && (
-                        <div className="space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label htmlFor="firstName" className={labelClasses}>First Name</label>
-                              <input
-                                type="text"
-                                id="firstName"
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                                className={getInputStyles('firstName')}
-                                required
-                              />
-                              {errors.firstName && (
-                                <p className={errorClasses}>{errors.firstName}</p>
-                              )}
-                            </div>
-                            <div>
-                              <label htmlFor="lastName" className={labelClasses}>Last Name</label>
-                              <input
-                                type="text"
-                                id="lastName"
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                                className={getInputStyles('lastName')}
-                                required
-                              />
-                              {errors.lastName && (
-                                <p className={errorClasses}>{errors.lastName}</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Phone number field */}
-                          <div>
-                            <label htmlFor="phone" className={labelClasses}>Phone Number</label>
-                            <input
-                              type="tel"
-                              id="phone"
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                              className={getInputStyles('phone')}
-                              placeholder="+2341234567890"
-                              required
-                            />
-                            {errors.phone && (
-                              <p className={errorClasses}>{errors.phone}</p>
-                            )}
-                            <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
-                              Type your number after +234
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div>
-                        <label htmlFor="email" className={labelClasses}>Email</label>
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className={getInputStyles('email')}
-                          required
-                        />
-                        {errors.email && (
-                          <p className={errorClasses}>{errors.email}</p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="password" className={labelClasses}>Password</label>
-                        <input
-                          type="password"
-                          id="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className={getInputStyles('password')}
-                          required
-                        />
-                        {errors.password && (
-                          <p className={errorClasses}>{errors.password}</p>
-                        )}
-                      </div>
-                      
-                      {authMode === 'signup' && (
-                        <div>
-                          <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password</label>
-                          <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            className={getInputStyles('confirmPassword')}
-                            required
-                          />
-                          {errors.confirmPassword && (
-                            <p className={errorClasses}>{errors.confirmPassword}</p>
-                          )}
-                        </div>
-                      )}
-                      
-                      {errors.auth && (
-                        <p className="text-red-500 text-sm mt-2">{errors.auth}</p>
-                      )}
-                      
-                      <div className="flex flex-col space-y-4">
-                        <Button
-                          variant="primary"
-                          onClick={handleAuth}
-                          className="w-full"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Create Account'}
-                        </Button>
+                  {step === 1 && (
+                    !isAuthenticated ? (
+                      <div className="space-y-6">
+                        <h2 className="text-3xl text-center  font-bold mb-6">
+                          {authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
+                        </h2>
                         
-                        <button
-                          type="button"
-                          onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                          className="text-sm text-accent hover:underline"
-                        >
-                          {authMode === 'login' 
-                            ? "Don't have an account? Sign up" 
-                            : 'Already have an account? Login'}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label htmlFor="firstName" className={labelClasses}>First Name</label>
-                          <input
-                            type="text"
-                            id="firstName"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            className={getInputStyles('firstName')}
-                            required
-                          />
-                          {errors.firstName && (
-                            <p className={errorClasses}>{errors.firstName}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label htmlFor="lastName" className={labelClasses}>Last Name</label>
-                          <input
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className={getInputStyles('lastName')}
-                            required
-                          />
-                          {errors.lastName && (
-                            <p className={errorClasses}>{errors.lastName}</p>
-                          )}
-                        </div>
+                        {authMode === 'signup' && (
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                <label htmlFor="firstName" className={labelClasses}>First Name</label>
+                                <input
+                                  type="text"
+                                  id="firstName"
+                                  name="firstName"
+                                  value={formData.firstName}
+                                  onChange={handleInputChange}
+                                  className={getInputStyles('firstName')}
+                                  required
+                                />
+                                {errors.firstName && (
+                                  <p className={errorClasses}>{errors.firstName}</p>
+                                )}
+                              </div>
+                              <div>
+                                <label htmlFor="lastName" className={labelClasses}>Last Name</label>
+                                <input
+                                  type="text"
+                                  id="lastName"
+                                  name="lastName"
+                                  value={formData.lastName}
+                                  onChange={handleInputChange}
+                                  className={getInputStyles('lastName')}
+                                  required
+                                />
+                                {errors.lastName && (
+                                  <p className={errorClasses}>{errors.lastName}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Phone number field */}
+                            <div>
+                              <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                              <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                className={getInputStyles('phone')}
+                                placeholder="+2341234567890"
+                                required
+                              />
+                              {errors.phone && (
+                                <p className={errorClasses}>{errors.phone}</p>
+                              )}
+                              <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
+                                Type your number after +234
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
                         <div>
                           <label htmlFor="email" className={labelClasses}>Email</label>
                           <input
@@ -667,27 +560,150 @@ export default function CheckoutForm({ orderData }) {
                             <p className={errorClasses}>{errors.email}</p>
                           )}
                         </div>
+                        
                         <div>
-                          <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                          <label htmlFor="password" className={labelClasses}>Password</label>
                           <input
-                            type="tel"
-                            id="phone"
-                            name="phone"
-                            value={formData.phone}
+                            type="password"
+                            id="password"
+                            name="password"
+                            value={formData.password}
                             onChange={handleInputChange}
-                            className={getInputStyles('phone')}
-                            placeholder="+2341234567890"
+                            className={getInputStyles('password')}
                             required
                           />
-                          {errors.phone && (
-                            <p className={errorClasses}>{errors.phone}</p>
+                          {errors.password && (
+                            <p className={errorClasses}>{errors.password}</p>
                           )}
-                          <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
-                            Type your number after +234
-                          </p>
+                        </div>
+                        
+                        {authMode === 'signup' && (
+                          <div>
+                            <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password</label>
+                            <input
+                              type="password"
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              value={formData.confirmPassword}
+                              onChange={handleInputChange}
+                              className={getInputStyles('confirmPassword')}
+                              required
+                            />
+                            {errors.confirmPassword && (
+                              <p className={errorClasses}>{errors.confirmPassword}</p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {errors.auth && (
+                          <p className="text-red-500 text-sm mt-2">{errors.auth}</p>
+                        )}
+                        
+                        <div className="flex flex-col space-y-4">
+                          <Button
+                            variant="primary"
+                            onClick={handleAuth}
+                            className="w-full"
+                            disabled={isLoading}
+                          >
+                            {isLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Create Account'}
+                          </Button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                            className="text-sm text-accent hover:underline"
+                          >
+                            {authMode === 'login' 
+                              ? "Don't have an account? Sign up" 
+                              : 'Already have an account? Login'}
+                          </button>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-center mb-6">
+                          <h2 className="text-xl font-semibold">Personal Information</h2>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingPersonalInfo(!isEditingPersonalInfo)}
+                            className="text-sm"
+                          >
+                            {isEditingPersonalInfo ? 'Save Changes' : 'Edit'}
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label htmlFor="firstName" className={labelClasses}>First Name</label>
+                            <input
+                              type="text"
+                              id="firstName"
+                              name="firstName"
+                              value={formData.firstName}
+                              onChange={handleInputChange}
+                              className={`${getInputStyles('firstName')} ${!isEditingPersonalInfo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                              required
+                              readOnly={!isEditingPersonalInfo}
+                            />
+                            {errors.firstName && (
+                              <p className={errorClasses}>{errors.firstName}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label htmlFor="lastName" className={labelClasses}>Last Name</label>
+                            <input
+                              type="text"
+                              id="lastName"
+                              name="lastName"
+                              value={formData.lastName}
+                              onChange={handleInputChange}
+                              className={`${getInputStyles('lastName')} ${!isEditingPersonalInfo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                              required
+                              readOnly={!isEditingPersonalInfo}
+                            />
+                            {errors.lastName && (
+                              <p className={errorClasses}>{errors.lastName}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label htmlFor="email" className={labelClasses}>Email</label>
+                            <input
+                              type="email"
+                              id="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              className={`${getInputStyles('email')} ${!isEditingPersonalInfo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                              required
+                              readOnly={!isEditingPersonalInfo}
+                            />
+                            {errors.email && (
+                              <p className={errorClasses}>{errors.email}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                            <input
+                              type="tel"
+                              id="phone"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              className={`${getInputStyles('phone')} ${!isEditingPersonalInfo ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                              placeholder="+2341234567890"
+                              required
+                              readOnly={!isEditingPersonalInfo}
+                            />
+                            {errors.phone && (
+                              <p className={errorClasses}>{errors.phone}</p>
+                            )}
+                            <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
+                              Type your number after +234
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )}
 
                   {/* Step 2: Shipping Information */}
@@ -709,21 +725,21 @@ export default function CheckoutForm({ orderData }) {
                           <p className={errorClasses}>{errors.address}</p>
                         )}
                       </div>
-                        <div>
-                          <label htmlFor="city" className={labelClasses}>City</label>
-                          <input
-                            type="text"
-                            id="city"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            className={getInputStyles('city')}
-                            required
-                          />
-                          {errors.city && (
-                            <p className={errorClasses}>{errors.city}</p>
-                          )}
-                        </div>
+                      <div>
+                        <label htmlFor="city" className={labelClasses}>City</label>
+                        <input
+                          type="text"
+                          id="city"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className={getInputStyles('city')}
+                          required
+                        />
+                        {errors.city && (
+                          <p className={errorClasses}>{errors.city}</p>
+                        )}
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                           <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
