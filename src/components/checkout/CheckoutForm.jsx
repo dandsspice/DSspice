@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../../api/authService';
 import orderService from '../../api/orderService';
+import {cookies} from '../../utils/cookies';
 
 // Add these utility functions at the top of the file
 const formatPhoneNumber = (value) => {
@@ -54,6 +55,7 @@ export default function CheckoutForm({ orderData }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
+  const [stockAvailable, setStockAvailable] = useState(true);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -66,16 +68,22 @@ export default function CheckoutForm({ orderData }) {
     const loadUserData = async () => {
       if (authService.isAuthenticated()) {
         setIsAuthenticated(true);
+        
+        // Get saved order selection from cookies first
+        const savedSelection = cookies.getOrderSelection();
+        const savedPersonalInfo = savedSelection?.personalInfo;
+        
+        // Then get user profile from backend
         const response = await authService.getUserProfile();
         
         if (response.code === 200) {
-          // Pre-fill form with user data
+          // Prioritize data from cookies if available, otherwise use profile data
           setFormData(prev => ({
             ...prev,
-            firstName: response.data.first_name || '',
-            lastName: response.data.last_name || '',
-            email: response.data.email || '',
-            phone: response.data.phone_number || ''
+            firstName: savedPersonalInfo?.firstName || response.data.first_name || '',
+            lastName: savedPersonalInfo?.lastName || response.data.last_name || '',
+            email: savedPersonalInfo?.email || response.data.email || '',
+            phone: savedPersonalInfo?.phone || response.data.phone_number || ''
           }));
         }
       }
@@ -83,6 +91,26 @@ export default function CheckoutForm({ orderData }) {
 
     loadUserData();
   }, []);
+
+  // Modify the useEffect that loads order data to check stock
+  useEffect(() => {
+    const checkStockAvailability = () => {
+      if (order && order.size) {
+        const requestedQuantity = order.quantity || 1;
+        const isAvailable = order.size.stock >= requestedQuantity;
+        setStockAvailable(isAvailable);
+        
+        if (!isAvailable) {
+          setErrors(prev => ({
+            ...prev,
+            stock: `Sorry, only ${order.size.stock} units available for the selected size.`
+          }));
+        }
+      }
+    };
+
+    checkStockAvailability();
+  }, [order]);
 
   // Add a function to get shipping cost based on selected method
   const getShippingCost = (method) => {
@@ -319,6 +347,13 @@ export default function CheckoutForm({ orderData }) {
 
   // Form submission
   const handleSubmit = async () => {
+    if (!stockAvailable) {
+      setErrors({
+        submit: 'Cannot process order due to insufficient stock.'
+      });
+      return;
+    }
+
     if (validateStep(3)) {
       setIsLoading(true);
       try {
@@ -440,6 +475,44 @@ export default function CheckoutForm({ orderData }) {
     } else {
       // Handle error - user might not be logged in
       console.log(response.message);
+    }
+  };
+
+  // Add this function to handle saving personal info changes
+  const handleSavePersonalInfo = async () => {
+    setIsEditingPersonalInfo(false);
+    
+    try {
+      // First update the user profile in the backend
+      const response = await authService.updateUserProfile({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone_number: formData.phone
+      });
+      
+      if (response.code === 200) {
+        // Update the cookies with the new personal information
+        const savedSelection = cookies.getOrderSelection() || {};
+        cookies.saveOrderSelection({
+          ...savedSelection,
+          ...order,
+          personalInfo: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone
+          }
+        });
+      } else {
+        setErrors({
+          auth: 'Failed to update profile information'
+        });
+      }
+    } catch (error) {
+      setErrors({
+        auth: error.message || 'An error occurred while saving changes'
+      });
     }
   };
 
@@ -626,7 +699,13 @@ export default function CheckoutForm({ orderData }) {
                           <h2 className="text-xl font-semibold">Personal Information</h2>
                           <Button
                             variant="outline"
-                            onClick={() => setIsEditingPersonalInfo(!isEditingPersonalInfo)}
+                            onClick={() => {
+                              if (isEditingPersonalInfo) {
+                                handleSavePersonalInfo();
+                              } else {
+                                setIsEditingPersonalInfo(true);
+                              }
+                            }}
                             className="text-sm"
                           >
                             {isEditingPersonalInfo ? 'Save Changes' : 'Edit'}
@@ -959,6 +1038,7 @@ export default function CheckoutForm({ orderData }) {
                       variant="primary"
                       onClick={handleNext}
                       className="w-32"
+                      disabled={isEditingPersonalInfo}
                     >
                       Continue
                     </Button>

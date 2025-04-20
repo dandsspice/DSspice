@@ -30,19 +30,22 @@ export default function OrderPage() {
         id: 'small',
         name: 'Small',
         weight: '100g',
-        price: 19.99
+        price: 19.99,
+        stock: 15
       },
       {
         id: 'medium',
         name: 'Medium',
         weight: '250g',
-        price: 39.99
+        price: 39.99,
+        stock: 25
       },
       {
         id: 'large',
         name: 'Large',
         weight: '500g',
-        price: 69.99
+        price: 69.99,
+        stock: 10
       }
     ]
   };
@@ -93,7 +96,9 @@ export default function OrderPage() {
   };
 
   const handleQuantityChange = (value) => {
-    const newQuantity = Math.max(1, Math.min(10, quantity + value));
+    // Use selectedSize.stock as the maximum instead of static 10
+    const maxQuantity = selectedSize.stock;
+    const newQuantity = Math.max(1, Math.min(maxQuantity, quantity + value));
     setQuantity(newQuantity);
   };
 
@@ -126,7 +131,7 @@ export default function OrderPage() {
       <button
         onClick={() => handleQuantityChange(-1)}
         disabled={quantity <= 1}
-        className={`p-2 rounded-full €{
+        className={`p-2 rounded-full ${
           quantity <= 1 
             ? 'bg-secondary/10 text-text-secondary cursor-not-allowed' 
             : 'bg-background-alt dark:bg-dark-background-alt hover:bg-accent/10'
@@ -141,9 +146,9 @@ export default function OrderPage() {
       
       <button
         onClick={() => handleQuantityChange(1)}
-        disabled={quantity >= 10}
-        className={`p-2 rounded-full €{
-          quantity >= 10 
+        disabled={quantity >= selectedSize.stock}
+        className={`p-2 rounded-full ${
+          quantity >= selectedSize.stock 
             ? 'bg-secondary/10 text-text-secondary cursor-not-allowed' 
             : 'bg-background-alt dark:bg-dark-background-alt hover:bg-accent/10'
         }`}
@@ -260,37 +265,48 @@ export default function OrderPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {product.sizes.map((size) => (
                 <button
-                key={size.id}
-                onClick={() => setSelectedSize(size)}
-              className={`p-4 rounded-xl text-center transition-all €{
-                  selectedSize?.id === size.id 
-                    ? 'bg-accent/20 border-2 border-accent' 
-                    : 'bg-background-alt dark:bg-dark-background-alt border-2 border-transparent hover:border-accent/30'
-                }`}
-              >
-              <div className="flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center sm:gap-2">
-                <div className="flex items-center gap-2">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center €{
-                    selectedSize?.id === size.id ? 'border-accent bg-accent' : 'border-secondary'
-                  }`}>
-                    {selectedSize?.id === size.id && (
-                      <svg className="w-3 h-3 text-text-primary dark:text-dark-text-primary" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                  key={size.id}
+                  onClick={() => {
+                    setSelectedSize(size);
+                    setQuantity(1);
+                  }}
+                  className={`p-4 rounded-xl text-center transition-all ${
+                    selectedSize?.id === size.id 
+                      ? 'bg-accent/20 border-2 border-accent' 
+                      : 'bg-background-alt dark:bg-dark-background-alt border-2 border-transparent hover:border-accent/30'
+                  } ${size.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={size.stock === 0}
+                >
+                  <div className="flex flex-row sm:flex-col items-center sm:items-center justify-between sm:justify-center sm:gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedSize?.id === size.id ? 'border-accent bg-accent' : 'border-secondary'
+                      }`}>
+                        {selectedSize?.id === size.id && (
+                          <svg className="w-3 h-3 text-text-primary dark:text-dark-text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="text-left sm:text-center">
+                        <h3 className="text-base font-medium">{size.name}</h3>
+                        <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                          {size.weight}
+                        </p>
+                        <p className={`text-sm ${
+                          size.stock < 5 ? 'text-red-500' : 'text-green-500'
+                        }`}>
+                          {size.stock === 0 ? 'Out of Stock' : 
+                           size.stock < 5 ? `Only ${size.stock} left` : 
+                           `${size.stock} in stock`}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-accent font-bold">
+                      €{size.price.toFixed(2)}
+                    </p>
                   </div>
-                  <div className="text-left sm:text-center">
-                    <h3 className="text-base font-medium">{size.name}</h3>
-                    <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                    {size.weight}
-                  </p>
-                  </div>
-                </div>
-                <p className="text-accent font-bold">
-                    €{size.price.toFixed(2)}
-                  </p>
-                </div>
-              </button>
+                </button>
               ))}
             </div>
           </motion.div>
@@ -305,7 +321,7 @@ export default function OrderPage() {
                 <div className="mb-4 sm:mb-0">
                   <h3 className="text-lg font-medium mb-2">How many would you like?</h3>
                   <p className="text-text-secondary dark:text-dark-text-secondary">
-                    Select between 1-10 packs
+                    Select between 1-{selectedSize.stock} packs
                   </p>
                 </div>
                 <QuantitySelector />
