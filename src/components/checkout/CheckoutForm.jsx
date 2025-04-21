@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../../api/authService';
 import orderService from '../../api/orderService';
 import {cookies} from '../../utils/cookies';
+import checkoutService from '../../api/checkoutService';
 
 // Add these utility functions at the top of the file
 const formatPhoneNumber = (value) => {
@@ -480,39 +481,67 @@ export default function CheckoutForm({ orderData }) {
 
   // Add this function to handle saving personal info changes
   const handleSavePersonalInfo = async () => {
-    setIsEditingPersonalInfo(false);
+    // First validate all required fields
+    const newErrors = {};
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First Name is required.';
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last Name is required.';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required.';
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone Number is required.';
+    }
+
+    // If there are validation errors, show them and don't proceed
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
     
     try {
-      // First update the user profile in the backend
-      const response = await authService.updateUserProfile({
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+      const response = await checkoutService.editPersonalInfo({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
-        phone_number: formData.phone
+        phone: formData.phone
       });
       
       if (response.code === 200) {
-        // Update the cookies with the new personal information
-        const savedSelection = cookies.getOrderSelection() || {};
-        cookies.saveOrderSelection({
-          ...savedSelection,
-          ...order,
-          personalInfo: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone
-          }
-        });
+        // Exit edit mode
+        setIsEditingPersonalInfo(false);
+        
+        // Clear any existing errors
+        setErrors({});
       } else {
-        setErrors({
-          auth: 'Failed to update profile information'
-        });
+        // Handle API error response
+        if (response.errors && Array.isArray(response.errors)) {
+          // Map API error messages to form fields
+          const fieldErrors = {};
+          response.errors.forEach(error => {
+            if (error.includes('First Name')) fieldErrors.firstName = error;
+            if (error.includes('Last Name')) fieldErrors.lastName = error;
+            if (error.includes('Email')) fieldErrors.email = error;
+            if (error.includes('Phone Number')) fieldErrors.phone = error;
+          });
+          setErrors(fieldErrors);
+        } else {
+          setErrors({
+            auth: response.message || 'Failed to update information'
+          });
+        }
       }
     } catch (error) {
       setErrors({
         auth: error.message || 'An error occurred while saving changes'
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
