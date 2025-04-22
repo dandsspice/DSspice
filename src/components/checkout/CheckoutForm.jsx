@@ -507,11 +507,6 @@ export default function CheckoutForm({ orderData }) {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    {address.is_default === 1 && (
-                      <span className="inline-block px-2 py-1 mb-2 text-xs font-medium text-green-700 bg-green-100 rounded-full">
-                        Default Address
-                      </span>
-                    )}
                     <p className="font-medium">{address.address}</p>
                     <p className="text-sm text-text-secondary">
                       {address.city}, {address.zipcode}
