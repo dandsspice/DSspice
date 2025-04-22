@@ -107,11 +107,16 @@ export default function OrderPage() {
     
     setIsLoading(true);
     
+    // Get size index based on the selected size
+    const sizeIndex = product.sizes.findIndex(s => s.id === selectedSize.id);
+    
     const orderData = {
+      productId: product.id,
+      quantity: quantity,
+      sizeIndex: sizeIndex, // This will be 0 for small, 1 for medium, 2 for large
+      size: selectedSize,
       type: product.id,
       typeName: product.name,
-      size: selectedSize,
-      quantity: quantity,
       totalPrice: selectedSize.price * quantity
     };
 

@@ -56,7 +56,6 @@ export default function CheckoutForm({ orderData }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
-  const [stockAvailable, setStockAvailable] = useState(true);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -92,26 +91,6 @@ export default function CheckoutForm({ orderData }) {
 
     loadUserData();
   }, []);
-
-  // Modify the useEffect that loads order data to check stock
-  useEffect(() => {
-    const checkStockAvailability = () => {
-      if (order && order.size) {
-        const requestedQuantity = order.quantity || 1;
-        const isAvailable = order.size.stock >= requestedQuantity;
-        setStockAvailable(isAvailable);
-        
-        if (!isAvailable) {
-          setErrors(prev => ({
-            ...prev,
-            stock: `Sorry, only ${order.size.stock} units available for the selected size.`
-          }));
-        }
-      }
-    };
-
-    checkStockAvailability();
-  }, [order]);
 
   // Add a function to get shipping cost based on selected method
   const getShippingCost = (method) => {
@@ -220,31 +199,30 @@ export default function CheckoutForm({ orderData }) {
 
   // Order Summary Component
   const OrderSummary = () => {
+    const orderDetails = location.state;
     const shippingCost = getShippingCost(formData.shippingMethod);
-    const quantity = order.quantity || 1;
-    const productPrice = order.size.price * quantity;
-    const total = productPrice + shippingCost;
+    const total = orderDetails.totalPrice + shippingCost;
     
     return (
       <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
-        <h3 className="text-lg font-semibold mb-4 text-text-primary dark:text-dark-text-primary">
+        <h3 className="text-lg font-semibold mb-4">
           Order Summary
         </h3>
         <div className="space-y-4">
           <div className="flex justify-between pb-4 border-b border-secondary/10">
             <div className="space-y-1">
-              <p className="font-medium">{order.typeName || `Premium Locust Beans (${order.type})`}</p>
-              <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                {order.size.weight} × {quantity}
+              <p className="font-medium">{orderDetails.typeName}</p>
+              <p className="text-sm text-text-secondary">
+                {orderDetails.size.weight} × {orderDetails.quantity}
               </p>
             </div>
-            <p className="font-medium">€{productPrice.toFixed(2)}</p>
+            <p className="font-medium">€{orderDetails.totalPrice.toFixed(2)}</p>
           </div>
           
           <div className="flex justify-between pb-4 border-b border-secondary/10">
             <div className="space-y-1">
               <p>Shipping</p>
-              <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+              <p className="text-sm text-text-secondary">
                 {formData.shippingMethod.replace(/([A-Z])/g, ' $1').trim()}
               </p>
             </div>
@@ -348,50 +326,63 @@ export default function CheckoutForm({ orderData }) {
 
   // Form submission
   const handleSubmit = async () => {
-    if (!stockAvailable) {
-      setErrors({
-        submit: 'Cannot process order due to insufficient stock.'
-      });
+    // Validate required shipping fields
+    const newErrors = {};
+    
+    if (!formData.address || !formData.city || !formData.postcode) {
+      newErrors.shippingAddress = 'Shipping Address is required.';
+    }
+    if (!formData.shippingMethod) {
+      newErrors.shippingMethod = 'Shipping Method is required.';
+    }
+
+    // If there are validation errors, show them and don't proceed
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (validateStep(3)) {
-      setIsLoading(true);
-      try {
-        const orderData = {
-          items: [{
-            type: order.type,
-            size: order.size,
-            quantity: order.quantity || 1
-          }],
-          shipping: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            postcode: formData.postcode,
-            method: formData.shippingMethod
-          },
-          payment: {
-            cardName: formData.cardName,
-            cardNumber: formData.cardNumber,
-            expiryDate: formData.expiryDate,
-            cvv: formData.cvv
-          },
-          total: getTotalWithShipping()
-        };
+    setIsLoading(true);
+    try {
+      // Format shipping address
+      const shippingAddress = `${formData.address}, ${formData.city}, ${formData.postcode}`;
 
-        await orderService.createOrder(orderData);
+      // Get order data from location state
+      const orderDetails = location.state;
+
+      const orderData = {
+        ...orderDetails, // This contains productId, quantity, sizeIndex from OrderPage
+        shippingAddress: shippingAddress,
+        shippingMethod: formData.shippingMethod
+      };
+
+      const response = await orderService.createOrder(orderData);
+
+      if (response.code === 200) {
+        // Clear the order selection from cookies since order is complete
+        cookies.clearOrderSelection();
         setIsComplete(true);
-      } catch (error) {
-        setErrors({ 
-          submit: error.message || 'Failed to process order. Please try again.' 
-        });
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Handle API error response
+        if (response.errors && Array.isArray(response.errors)) {
+          const fieldErrors = {};
+          response.errors.forEach(error => {
+            if (error.includes('Shipping Address')) fieldErrors.shippingAddress = error;
+            if (error.includes('Shipping Method')) fieldErrors.shippingMethod = error;
+          });
+          setErrors(fieldErrors);
+        } else {
+          setErrors({ 
+            submit: response.message || 'Failed to process order. Please try again.' 
+          });
+        }
       }
+    } catch (error) {
+      setErrors({ 
+        submit: error.message || 'An error occurred while processing your order.' 
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
