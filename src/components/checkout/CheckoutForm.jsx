@@ -30,6 +30,17 @@ const formatExpiryDate = (value) => {
   return `${expiry.slice(0, 2)}/${expiry.slice(2, 4)}`;
 };
 
+// Add this mapping at the top of the file with other utility functions
+const shippingMethodToApiValue = {
+  'RoyalMailTracked48': '1',
+  'RoyalMailTracked24': '2',
+  'RoyalMailSigned1stClass': '3',
+  'RoyalMailTracked24Signed': '4'
+};
+
+// Add a constant for maximum addresses
+const MAX_SHIPPING_ADDRESSES = 3;
+
 export default function CheckoutForm({ orderData }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,6 +68,10 @@ export default function CheckoutForm({ orderData }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [defaultAddressId, setDefaultAddressId] = useState(null);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -92,6 +107,60 @@ export default function CheckoutForm({ orderData }) {
 
     loadUserData();
   }, []);
+
+  // Update the useEffect that loads saved addresses
+  useEffect(() => {
+    const loadSavedAddresses = async () => {
+      if (isAuthenticated) {
+        const response = await checkoutService.getShippingAddresses();
+        
+        if (response.code === 200 && Array.isArray(response.data)) {
+          setSavedAddresses(response.data);
+          
+          // Find default address
+          const defaultAddress = response.data.find(addr => addr.is_default === 1);
+          if (defaultAddress) {
+            setDefaultAddressId(defaultAddress.ID);
+            setSelectedAddressId(defaultAddress.ID);
+            
+            // Pre-fill the form with the default address
+            setFormData(prev => ({
+              ...prev,
+              address: defaultAddress.address,
+              city: defaultAddress.city,
+              postcode: defaultAddress.zipcode,
+              country: defaultAddress.country,
+              shippingMethod: getShippingMethodFromValue(defaultAddress.shipping_method)
+            }));
+          } else if (response.data.length > 0) {
+            // If no default, use the first address
+            setSelectedAddressId(response.data[0].ID);
+            setFormData(prev => ({
+              ...prev,
+              address: response.data[0].address,
+              city: response.data[0].city,
+              postcode: response.data[0].zipcode,
+              country: response.data[0].country,
+              shippingMethod: getShippingMethodFromValue(response.data[0].shipping_method)
+            }));
+          }
+        }
+      }
+    };
+
+    loadSavedAddresses();
+  }, [isAuthenticated]);
+
+  // Add utility function to convert API shipping method value to UI value
+  const getShippingMethodFromValue = (value) => {
+    const methodMap = {
+      1: 'RoyalMailTracked48',
+      2: 'RoyalMailTracked24',
+      3: 'RoyalMailSigned1stClass',
+      4: 'RoyalMailTracked24Signed'
+    };
+    return methodMap[value] || 'RoyalMailTracked48';
+  };
 
   // Add a function to get shipping cost based on selected method
   const getShippingCost = (method) => {
@@ -336,9 +405,269 @@ export default function CheckoutForm({ orderData }) {
     >
       <div className="bg-background dark:bg-dark-background rounded-lg p-8 flex flex-col items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
-        <p className="text-text-primary dark:text-dark-text-primary">Processing your order...</p>
+        <p className="text-text-primary dark:text-dark-text-primary">Loading...</p>
       </div>
     </motion.div>
+  );
+
+  // Update handleAddressSelect to handle shipping method
+  const handleAddressSelect = (addressId) => {
+    const selectedAddress = savedAddresses.find(addr => addr.ID === addressId);
+    if (selectedAddress) {
+      setSelectedAddressId(addressId);
+      setFormData(prev => ({
+        ...prev,
+        address: selectedAddress.address,
+        city: selectedAddress.city,
+        postcode: selectedAddress.zipcode,
+        country: selectedAddress.country,
+        shippingMethod: getShippingMethodFromValue(selectedAddress.shipping_method)
+      }));
+    }
+  };
+
+  // Update the handleDeleteAddress function
+  const handleDeleteAddress = async (addressId) => {
+    if (window.confirm('Are you sure you want to delete this address?')) {
+      setIsLoading(true);
+      try {
+        const response = await checkoutService.deleteShippingAddress(addressId);
+        if (response.code === 200) {
+          // Refresh the addresses list
+          const addressesResponse = await checkoutService.getShippingAddresses();
+          if (addressesResponse.code === 200) {
+            setSavedAddresses(addressesResponse.data);
+            
+            // If we deleted the selected address, clear the selection
+            if (selectedAddressId === addressId) {
+              setSelectedAddressId(null);
+              setFormData(prev => ({
+                ...prev,
+                address: '',
+                city: '',
+                postcode: '',
+                country: 'Nigeria',
+                shippingMethod: 'RoyalMailTracked48'
+              }));
+            }
+          }
+          
+          // Show success message
+          setErrors({
+            success: 'Address deleted successfully!'
+          });
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setErrors(prev => {
+              const { success, ...rest } = prev;
+              return rest;
+            });
+          }, 3000);
+        } else {
+          setErrors({
+            submit: response.message || 'Failed to delete address'
+          });
+        }
+      } catch (error) {
+        setErrors({
+          submit: error.message || 'An error occurred while deleting the address'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // Update the renderShippingInformation function
+  const renderShippingInformation = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
+      
+      {/* Saved Addresses Section */}
+      {savedAddresses.length > 0 ? (
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">Saved Addresses</h3>
+            <span className="text-sm text-text-secondary">
+              {savedAddresses.length} of {MAX_SHIPPING_ADDRESSES} addresses saved
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            {savedAddresses.map((address) => (
+              <div
+                key={address.ID}
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                  selectedAddressId === address.ID
+                    ? 'border-accent bg-accent/5'
+                    : 'border-secondary/20 hover:border-accent/30'
+                }`}
+                onClick={() => handleAddressSelect(address.ID)}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    {address.is_default === 1 && (
+                      <span className="inline-block px-2 py-1 mb-2 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                        Default Address
+                      </span>
+                    )}
+                    <p className="font-medium">{address.address}</p>
+                    <p className="text-sm text-text-secondary">
+                      {address.city}, {address.zipcode}
+                    </p>
+                    <p className="text-sm text-text-secondary">{address.country}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditingAddress(true);
+                        handleAddressSelect(address.ID);
+                      }}
+                      className="text-sm text-accent hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAddress(address.ID);
+                      }}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Only show Add New Address button if under the limit */}
+          {savedAddresses.length < MAX_SHIPPING_ADDRESSES && (
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  setSelectedAddressId(null);
+                  setIsEditingAddress(false);
+                  setFormData(prev => ({
+                    ...prev,
+                    address: '',
+                    city: '',
+                    postcode: '',
+                    country: 'Nigeria',
+                    shippingMethod: 'RoyalMailTracked48'
+                  }));
+                }}
+                className="text-sm text-accent hover:underline"
+              >
+                + Add New Address
+              </button>
+            </div>
+          )}
+
+          {/* Show limit reached message */}
+          {savedAddresses.length >= MAX_SHIPPING_ADDRESSES && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700">
+                Maximum number of shipping addresses ({MAX_SHIPPING_ADDRESSES}) reached. 
+                Please delete an existing address to add a new one.
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <p className="text-gray-600">
+            You haven't saved any shipping addresses yet. 
+            You can save up to {MAX_SHIPPING_ADDRESSES} addresses.
+          </p>
+        </div>
+      )}
+
+      {/* Only show the address form if under the limit or editing */}
+      {((!selectedAddressId && savedAddresses.length < MAX_SHIPPING_ADDRESSES) || isEditingAddress) && (
+        <div>
+          <div>
+            <label htmlFor="address" className={labelClasses}>Street Address</label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              className={getInputStyles('address')}
+              required
+            />
+            {errors.address && (
+              <p className={errorClasses}>{errors.address}</p>
+            )}
+          </div>
+          
+          <div className="mt-4">
+            <label htmlFor="city" className={labelClasses}>City</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              className={getInputStyles('city')}
+              required
+            />
+            {errors.city && (
+              <p className={errorClasses}>{errors.city}</p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div>
+              <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
+              <input
+                type="text"
+                id="postcode"
+                name="postcode"
+                value={formData.postcode}
+                onChange={handleInputChange}
+                className={getInputStyles('postcode')}
+                required
+              />
+              {errors.postcode && (
+                <p className={errorClasses}>{errors.postcode}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="country" className={labelClasses}>Country</label>
+              <input
+                type="text"
+                id="country"
+                name="country"
+                value="Nigeria"
+                className={getInputStyles('country')}
+                required
+                readOnly
+              />
+            </div>
+          </div>
+
+          {/* Save Address Button */}
+          <div className="mt-6 flex justify-end">
+            {errors.success && (
+              <p className="text-green-500 text-sm mr-4 mt-2">{errors.success}</p>
+            )}
+            <Button
+              variant="outline"
+              onClick={handleSaveAddress}
+              className="px-6"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Saving...' : isEditingAddress ? 'Update Address' : 'Save Address'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 
   // Form submission
@@ -361,13 +690,37 @@ export default function CheckoutForm({ orderData }) {
 
     setIsLoading(true);
     try {
-      // First save shipping address
-      const shippingResponse = await checkoutService.addShippingAddress({
-        address: formData.address,
-        city: formData.city,
-        zipcode: formData.postcode,
-        country: formData.country
-      });
+      let shippingResponse;
+      const shippingMethodValue = shippingMethodToApiValue[formData.shippingMethod];
+      
+      if (selectedAddressId && !isEditingAddress) {
+        // Use existing address
+        shippingResponse = { 
+          code: 200, 
+          data: { ID: selectedAddressId }
+        };
+      } else if (selectedAddressId && isEditingAddress) {
+        // Update existing address
+        shippingResponse = await checkoutService.editShippingAddress(
+          selectedAddressId,
+          {
+            address: formData.address,
+            city: formData.city,
+            zipcode: formData.postcode,
+            country: 'Nigeria',
+            shipping_method: shippingMethodValue
+          }
+        );
+      } else {
+        // Create new address
+        shippingResponse = await checkoutService.addShippingAddress({
+          address: formData.address,
+          city: formData.city,
+          zipcode: formData.postcode,
+          country: 'Nigeria',
+          shipping_method: shippingMethodValue
+        });
+      }
 
       if (shippingResponse.code !== 200) {
         setErrors({
@@ -381,8 +734,8 @@ export default function CheckoutForm({ orderData }) {
 
       const orderData = {
         ...orderDetails,
-        shippingId: shippingResponse.data.ID, // Use the returned shipping ID
-        shippingMethod: formData.shippingMethod
+        shippingId: shippingResponse.data.ID,
+        shippingMethod: shippingMethodValue
       };
 
       const response = await orderService.createOrder(orderData);
@@ -565,75 +918,101 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
-  // Update the shipping information form section
-  const renderShippingInformation = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
-      <div>
-        <label htmlFor="address" className={labelClasses}>Street Address</label>
-        <input
-          type="text"
-          id="address"
-          name="address"
-          value={formData.address}
-          onChange={handleInputChange}
-          className={getInputStyles('address')}
-          required
-        />
-        {errors.address && (
-          <p className={errorClasses}>{errors.address}</p>
-        )}
-      </div>
-      <div>
-        <label htmlFor="city" className={labelClasses}>City</label>
-        <input
-          type="text"
-          id="city"
-          name="city"
-          value={formData.city}
-          onChange={handleInputChange}
-          className={getInputStyles('city')}
-          required
-        />
-        {errors.city && (
-          <p className={errorClasses}>{errors.city}</p>
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
-          <input
-            type="text"
-            id="postcode"
-            name="postcode"
-            value={formData.postcode}
-            onChange={handleInputChange}
-            className={getInputStyles('postcode')}
-            required
-          />
-          {errors.postcode && (
-            <p className={errorClasses}>{errors.postcode}</p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="country" className={labelClasses}>Country</label>
-          <input
-            type="text"
-            id="country"
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            className={getInputStyles('country')}
-            required
-            
-          />
-          {errors.country && (
-            <p className={errorClasses}>{errors.country}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // Update handleSaveAddress to check for maximum addresses
+  const handleSaveAddress = async () => {
+    // Validation
+    const newErrors = {};
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+    }
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+    if (!formData.postcode.trim()) {
+      newErrors.postcode = 'ZIP Code is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const shippingMethodValue = shippingMethodToApiValue[formData.shippingMethod];
+      
+      let response;
+      if (selectedAddressId && isEditingAddress) {
+        // Send the updated address data when editing
+        response = await checkoutService.editShippingAddress(
+          selectedAddressId,
+          {
+            address: formData.address,
+            city: formData.city,
+            zipcode: formData.postcode,
+            country: 'Nigeria',
+            shipping_method: shippingMethodValue
+          }
+        );
+      } else {
+        // Check if we're at the limit for new addresses
+        if (savedAddresses.length >= MAX_SHIPPING_ADDRESSES) {
+          setErrors({
+            submit: `Maximum number of shipping addresses (${MAX_SHIPPING_ADDRESSES}) reached. Please delete an existing address first.`
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        response = await checkoutService.addShippingAddress({
+          address: formData.address,
+          city: formData.city,
+          zipcode: formData.postcode,
+          country: 'Nigeria',
+          shipping_method: shippingMethodValue
+        });
+      }
+
+      if (response.code === 200) {
+        // Refresh the addresses list
+        const addressesResponse = await checkoutService.getShippingAddresses();
+        if (addressesResponse.code === 200) {
+          setSavedAddresses(addressesResponse.data);
+          
+          // If this was a new address, select it
+          if (!isEditingAddress) {
+            setSelectedAddressId(response.data.ID);
+          }
+          
+          // Exit edit mode
+          setIsEditingAddress(false);
+          
+          // Show success message
+          setErrors({
+            success: isEditingAddress ? 'Address updated successfully!' : 'Address saved successfully!'
+          });
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setErrors(prev => {
+              const { success, ...rest } = prev;
+              return rest;
+            });
+          }, 3000);
+        }
+      } else {
+        setErrors({
+          submit: response.message || (isEditingAddress ? 'Failed to update address' : 'Failed to save address')
+        });
+      }
+    } catch (error) {
+      setErrors({
+        submit: error.message || 'An error occurred while saving the address'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4">
