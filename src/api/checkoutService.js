@@ -40,6 +40,46 @@ const checkoutService = {
         errors: ['Failed to update personal information']
       };
     }
+  },
+
+  // Add new shipping address method
+  addShippingAddress: async (shippingInfo) => {
+    try {
+      const formData = new FormData();
+      formData.append('address', shippingInfo.address);
+      formData.append('city', shippingInfo.city);
+      formData.append('zipcode', shippingInfo.zipcode);
+      formData.append('country', shippingInfo.country);
+
+      const response = await api.post('/shipping/add', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      // If successful, update the checkout information in cookies
+      if (response.data.code === 200) {
+        const savedSelection = cookies.getOrderSelection() || {};
+        cookies.saveOrderSelection({
+          ...savedSelection,
+          shippingInfo: {
+            address: shippingInfo.address,
+            city: shippingInfo.city,
+            zipcode: shippingInfo.zipcode,
+            country: shippingInfo.country
+          }
+        });
+      }
+
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred while saving shipping address',
+        data: null,
+        errors: ['Failed to save shipping address']
+      };
+    }
   }
 };
 

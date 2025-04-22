@@ -51,6 +51,7 @@ export default function CheckoutForm({ orderData }) {
     shippingMethod: 'RoyalMailTracked48',
     password: '',
     confirmPassword: '',
+    country: '',
   });
   const [authMode, setAuthMode] = useState('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -136,8 +137,24 @@ export default function CheckoutForm({ orderData }) {
           newErrors.confirmPassword = 'Passwords do not match';
         }
       }
+    } else if (stepNumber === 2) {
+      // Validate shipping information
+      if (!formData.address.trim()) {
+        newErrors.address = 'Address is required';
+      }
+      if (!formData.city.trim()) {
+        newErrors.city = 'City is required';
+      }
+      if (!formData.postcode.trim()) {
+        newErrors.postcode = 'ZIP Code is required';
+      }
     } else if (stepNumber === 3) {
-      // Only check if fields are not empty
+      // Validate shipping method
+      if (!formData.shippingMethod) {
+        newErrors.shippingMethod = 'Please select a shipping method';
+      }
+    } else if (stepNumber === 4) {
+      // Validate payment (previously step 3)
       if (!formData.cardName.trim()) {
         newErrors.cardName = 'Name on card is required';
       }
@@ -241,7 +258,7 @@ export default function CheckoutForm({ orderData }) {
   // Progress Steps Component
   const ProgressSteps = () => (
     <div className="flex justify-between mb-8">
-      {['Personal Info', 'Shipping', 'Payment'].map((label, index) => (
+      {['Personal Info', 'Shipping Info', 'Shipping Method', 'Payment'].map((label, index) => (
         <div key={label} className="flex items-center">
           <motion.div
             initial={{ scale: 0.8 }}
@@ -261,7 +278,7 @@ export default function CheckoutForm({ orderData }) {
             {index + 1}
           </motion.div>
           <span className="ml-2 hidden sm:inline">{label}</span>
-          {index < 2 && (
+          {index < 3 && (
             <div className="mx-4 flex-1 h-0.5 bg-secondary/20" />
           )}
         </div>
@@ -329,8 +346,8 @@ export default function CheckoutForm({ orderData }) {
     // Validate required shipping fields
     const newErrors = {};
     
-    if (!formData.address || !formData.city || !formData.postcode) {
-      newErrors.shippingAddress = 'Shipping Address is required.';
+    if (!formData.address || !formData.city || !formData.postcode || !formData.country) {
+      newErrors.shippingAddress = 'All shipping fields are required.';
     }
     if (!formData.shippingMethod) {
       newErrors.shippingMethod = 'Shipping Method is required.';
@@ -344,15 +361,27 @@ export default function CheckoutForm({ orderData }) {
 
     setIsLoading(true);
     try {
-      // Format shipping address
-      const shippingAddress = `${formData.address}, ${formData.city}, ${formData.postcode}`;
+      // First save shipping address
+      const shippingResponse = await checkoutService.addShippingAddress({
+        address: formData.address,
+        city: formData.city,
+        zipcode: formData.postcode,
+        country: formData.country
+      });
+
+      if (shippingResponse.code !== 200) {
+        setErrors({
+          submit: shippingResponse.message || 'Failed to save shipping address'
+        });
+        return;
+      }
 
       // Get order data from location state
       const orderDetails = location.state;
 
       const orderData = {
-        ...orderDetails, // This contains productId, quantity, sizeIndex from OrderPage
-        shippingAddress: shippingAddress,
+        ...orderDetails,
+        shippingId: shippingResponse.data.ID, // Use the returned shipping ID
         shippingMethod: formData.shippingMethod
       };
 
@@ -363,7 +392,6 @@ export default function CheckoutForm({ orderData }) {
         cookies.clearOrderSelection();
         setIsComplete(true);
       } else {
-        // Handle API error response
         if (response.errors && Array.isArray(response.errors)) {
           const fieldErrors = {};
           response.errors.forEach(error => {
@@ -449,6 +477,7 @@ export default function CheckoutForm({ orderData }) {
       shippingMethod: 'RoyalMailTracked48',
       password: '',
       confirmPassword: '',
+      country: '',
     });
   };
 
@@ -535,6 +564,76 @@ export default function CheckoutForm({ orderData }) {
       setIsLoading(false);
     }
   };
+
+  // Update the shipping information form section
+  const renderShippingInformation = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
+      <div>
+        <label htmlFor="address" className={labelClasses}>Street Address</label>
+        <input
+          type="text"
+          id="address"
+          name="address"
+          value={formData.address}
+          onChange={handleInputChange}
+          className={getInputStyles('address')}
+          required
+        />
+        {errors.address && (
+          <p className={errorClasses}>{errors.address}</p>
+        )}
+      </div>
+      <div>
+        <label htmlFor="city" className={labelClasses}>City</label>
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value={formData.city}
+          onChange={handleInputChange}
+          className={getInputStyles('city')}
+          required
+        />
+        {errors.city && (
+          <p className={errorClasses}>{errors.city}</p>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
+          <input
+            type="text"
+            id="postcode"
+            name="postcode"
+            value={formData.postcode}
+            onChange={handleInputChange}
+            className={getInputStyles('postcode')}
+            required
+          />
+          {errors.postcode && (
+            <p className={errorClasses}>{errors.postcode}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="country" className={labelClasses}>Country</label>
+          <input
+            type="text"
+            id="country"
+            name="country"
+            value={formData.country}
+            onChange={handleInputChange}
+            className={getInputStyles('country')}
+            required
+            
+          />
+          {errors.country && (
+            <p className={errorClasses}>{errors.country}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4">
@@ -806,59 +905,15 @@ export default function CheckoutForm({ orderData }) {
                   )}
 
                   {/* Step 2: Shipping Information */}
-                  {step === 2 && (
+                  {step === 2 && renderShippingInformation()}
+
+                  {/* Step 3: Shipping Method */}
+                  {step === 3 && (
                     <div className="space-y-6">
-                      <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
-                      <div>
-                        <label htmlFor="address" className={labelClasses}>Street Address</label>
-                        <input
-                          type="text"
-                          id="address"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          className={getInputStyles('address')}
-                          required
-                        />
-                        {errors.address && (
-                          <p className={errorClasses}>{errors.address}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="city" className={labelClasses}>City</label>
-                        <input
-                          type="text"
-                          id="city"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          className={getInputStyles('city')}
-                          required
-                        />
-                        {errors.city && (
-                          <p className={errorClasses}>{errors.city}</p>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                          <label htmlFor="postcode" className={labelClasses}>ZIP Code</label>
-                          <input
-                            type="text"
-                            id="postcode"
-                            name="postcode"
-                            value={formData.postcode}
-                            onChange={handleInputChange}
-                            className={getInputStyles('postcode')}
-                            required
-                          />
-                          {errors.postcode && (
-                            <p className={errorClasses}>{errors.postcode}</p>
-                          )}
-                        </div>
-                      </div>
+                      <h2 className="text-xl font-semibold mb-6">Shipping Method</h2>
                       <div className="mb-6">
                         <label className="block text-sm font-medium mb-2 text-text-primary dark:text-dark-text-primary">
-                          Shipping Method
+                          Select Shipping Method
                         </label>
                         <div className="mt-2 space-y-3">
                           <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
@@ -964,8 +1019,8 @@ export default function CheckoutForm({ orderData }) {
                     </div>
                   )}
 
-                  {/* Step 3: Payment Information */}
-                  {step === 3 && (
+                  {/* Step 4: Payment Information (previously step 3) */}
+                  {step === 4 && (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold mb-6">Payment Information</h2>
                       <div>
@@ -1053,7 +1108,7 @@ export default function CheckoutForm({ orderData }) {
                   </Button>
                 )}
                 <div className="ml-auto">
-                  {step === 1 && !isAuthenticated ? null : step < 3 ? (
+                  {step === 1 && !isAuthenticated ? null : step < 4 ? (
                     <Button
                       variant="primary"
                       onClick={handleNext}
