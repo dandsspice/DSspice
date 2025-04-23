@@ -31,8 +31,7 @@ export default function OrderPage() {
       try {
         const response = await orderService.getProduct('847694');
         
-        // The API returns code 400 but with valid data
-        if (response.data) {
+        if (response.code === 200 && response.data) {
           const productData = response.data;
           setProduct({
             id: productData.ID.toString(),
@@ -50,14 +49,13 @@ export default function OrderPage() {
               stock: size.quantity
             }))
           });
-          setIsLoading(false);
         } else {
-          setError('No product data available');
-          setIsLoading(false);
+          setError('Failed to load product data');
         }
       } catch (error) {
         console.error('Error fetching product:', error);
         setError(error.message || 'Failed to load product data');
+      } finally {
         setIsLoading(false);
       }
     };

@@ -34,13 +34,7 @@ const orderService = {
 return response.data;
      
     } catch (error) {
-       // Only throw if we actually have an error
-       if (!error.response?.data) {
-        throw { message: 'Error fetching product' };
-      }
-      // If we have response data, return it even if it's an error status
-      return error.response.data;
-
+      throw { message: 'Error fetching product' };
     }
   },
 };
