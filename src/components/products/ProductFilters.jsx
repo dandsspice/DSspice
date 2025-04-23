@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function ProductFilters({ onFilterChange }) {
+export default function ProductFilters({ onFilterChange, availableSizes }) {
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedSort, setSelectedSort] = useState('featured');
 
@@ -26,9 +26,11 @@ export default function ProductFilters({ onFilterChange }) {
           className="rounded-lg border border-secondary/20 px-3 py-1.5 bg-background dark:bg-dark-background text-text-primary dark:text-dark-text-primary"
         >
           <option value="all">All Sizes</option>
-          <option value="small">Small (100g)</option>
-          <option value="medium">Medium (250g)</option>
-          <option value="large">Large (500g)</option>
+          {availableSizes?.map(size => (
+            <option key={size.id} value={size.id}>
+              {size.name} ({size.weight})
+            </option>
+          ))}
         </select>
       </div>
 

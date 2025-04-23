@@ -27,6 +27,26 @@ const orderService = {
     }
   },
 
+  getProduct: async (productId) => {
+    try {
+      // Use the full API URL
+      const response = await api.get(`/product/${productId}`);
+return response.data;
+     
+    } catch (error) {
+       // Only throw if we actually have an error
+       if (!error.response?.data) {
+        throw { message: 'Error fetching product' };
+      }
+      // If we have response data, return it even if it's an error status
+      return error.response.data;
+
+    }
+  },
 };
 
 export default orderService; 
+
+
+
+

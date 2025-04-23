@@ -72,6 +72,7 @@ export default function CheckoutForm({ orderData }) {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [defaultAddressId, setDefaultAddressId] = useState(null);
+  const [shippingMethods, setShippingMethods] = useState([]);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -151,6 +152,26 @@ export default function CheckoutForm({ orderData }) {
     loadSavedAddresses();
   }, [isAuthenticated]);
 
+  // Add useEffect to fetch shipping methods
+  useEffect(() => {
+    const loadShippingMethods = async () => {
+      const response = await checkoutService.getShippingMethods();
+      if (response.code === 200 && Array.isArray(response.data)) {
+        setShippingMethods(response.data);
+        
+        // If we have shipping methods and no method is selected, select the first one
+        if (response.data.length > 0 && !formData.shippingMethod) {
+          setFormData(prev => ({
+            ...prev,
+            shippingMethod: response.data[0].ID.toString()
+          }));
+        }
+      }
+    };
+
+    loadShippingMethods();
+  }, []);
+
   // Add utility function to convert API shipping method value to UI value
   const getShippingMethodFromValue = (value) => {
     const methodMap = {
@@ -162,15 +183,10 @@ export default function CheckoutForm({ orderData }) {
     return methodMap[value] || 'RoyalMailTracked48';
   };
 
-  // Add a function to get shipping cost based on selected method
-  const getShippingCost = (method) => {
-    const shippingCosts = {
-      RoyalMailTracked48: 3.39,
-      RoyalMailTracked24: 4.25,
-      RoyalMailSigned1stClass: 5.49,
-      RoyalMailTracked24Signed: 5.65
-    };
-    return shippingCosts[method] || 3.39;
+  // Update the getShippingCost function to use the API data
+  const getShippingCost = (methodId) => {
+    const method = shippingMethods.find(m => m.ID.toString() === methodId);
+    return method ? parseFloat(method.price) : 0;
   };
 
   const getTotalWithShipping = () => {
@@ -286,7 +302,10 @@ export default function CheckoutForm({ orderData }) {
   // Order Summary Component
   const OrderSummary = () => {
     const orderDetails = location.state;
-    const shippingCost = getShippingCost(formData.shippingMethod);
+    const selectedMethod = shippingMethods.find(
+      m => m.ID.toString() === formData.shippingMethod
+    );
+    const shippingCost = selectedMethod ? parseFloat(selectedMethod.price) : 0;
     const total = orderDetails.totalPrice + shippingCost;
     
     return (
@@ -309,7 +328,7 @@ export default function CheckoutForm({ orderData }) {
             <div className="space-y-1">
               <p>Shipping</p>
               <p className="text-sm text-text-secondary">
-                {formData.shippingMethod.replace(/([A-Z])/g, ' $1').trim()}
+                {selectedMethod?.title || 'No shipping method selected'}
               </p>
             </div>
             <p>€{shippingCost.toFixed(2)}</p>
@@ -410,76 +429,78 @@ export default function CheckoutForm({ orderData }) {
     </motion.div>
   );
 
-  // Update handleAddressSelect to handle shipping method
-  const handleAddressSelect = (addressId) => {
-    const selectedAddress = savedAddresses.find(addr => addr.ID === addressId);
-    if (selectedAddress) {
-      setSelectedAddressId(addressId);
-      setFormData(prev => ({
-        ...prev,
-        address: selectedAddress.address,
-        city: selectedAddress.city,
-        postcode: selectedAddress.zipcode,
-        country: selectedAddress.country,
-        shippingMethod: getShippingMethodFromValue(selectedAddress.shipping_method)
-      }));
-    }
-  };
-
-  // Update the handleDeleteAddress function
-  const handleDeleteAddress = async (addressId) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
+  // Update handleAddressSelect function
+  const handleAddressSelect = async (addressId) => {
+    try {
       setIsLoading(true);
-      try {
-        const response = await checkoutService.deleteShippingAddress(addressId);
-        if (response.code === 200) {
-          // Refresh the addresses list
-          const addressesResponse = await checkoutService.getShippingAddresses();
-          if (addressesResponse.code === 200) {
-            setSavedAddresses(addressesResponse.data);
-            
-            // If we deleted the selected address, clear the selection
-            if (selectedAddressId === addressId) {
-              setSelectedAddressId(null);
-              setFormData(prev => ({
-                ...prev,
-                address: '',
-                city: '',
-                postcode: '',
-                country: 'Nigeria',
-                shippingMethod: 'RoyalMailTracked48'
-              }));
-            }
-          }
-          
-          // Show success message
-          setErrors({
-            success: 'Address deleted successfully!'
-          });
-          
-          // Clear success message after 3 seconds
-          setTimeout(() => {
-            setErrors(prev => {
-              const { success, ...rest } = prev;
-              return rest;
-            });
-          }, 3000);
-        } else {
-          setErrors({
-            submit: response.message || 'Failed to delete address'
-          });
-        }
-      } catch (error) {
-        setErrors({
-          submit: error.message || 'An error occurred while deleting the address'
-        });
-      } finally {
-        setIsLoading(false);
+      const response = await checkoutService.getShippingAddressById(addressId);
+      
+      if (response.code === 200 && response.data) {
+        const address = response.data;
+        
+        setSelectedAddressId(addressId);
+        setFormData(prev => ({
+          ...prev,
+          address: address.address,
+          city: address.city,
+          postcode: address.zipcode,
+          country: address.country,
+          shippingMethod: address.shipping_method
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          submit: 'Failed to load address details'
+        }));
       }
+    } catch (error) {
+      setErrors(prev => ({
+        ...prev,
+        submit: 'Error loading address details'
+      }));
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Update the renderShippingInformation function
+  // Also update the edit button click handler
+  const handleEditClick = async (e, addressId) => {
+    e.stopPropagation();
+    setIsLoading(true);
+    
+    try {
+      const response = await checkoutService.getShippingAddressById(addressId);
+      
+      if (response.code === 200 && response.data) {
+        const address = response.data;
+        
+        setSelectedAddressId(addressId);
+        setIsEditingAddress(true);
+        setFormData(prev => ({
+          ...prev,
+          address: address.address,
+          city: address.city,
+          postcode: address.zipcode,
+          country: address.country,
+          shippingMethod: address.shipping_method
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          submit: 'Failed to load address details for editing'
+        }));
+      }
+    } catch (error) {
+      setErrors(prev => ({
+        ...prev,
+        submit: 'Error loading address details for editing'
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update the address list rendering to use the new edit handler
   const renderShippingInformation = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
@@ -515,11 +536,7 @@ export default function CheckoutForm({ orderData }) {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEditingAddress(true);
-                        handleAddressSelect(address.ID);
-                      }}
+                      onClick={(e) => handleEditClick(e, address.ID)}
                       className="text-sm text-accent hover:underline"
                     >
                       Edit
@@ -662,6 +679,59 @@ export default function CheckoutForm({ orderData }) {
           </div>
         </div>
       )}
+    </div>
+  );
+
+  // Update the shipping method section in renderShippingInformation
+  const renderShippingMethods = () => (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold mb-6">Shipping Method</h2>
+      <div className="mb-6">
+        <label className="block text-sm font-medium mb-2 text-text-primary dark:text-dark-text-primary">
+          Select Shipping Method
+        </label>
+        {shippingMethods.length > 0 ? (
+          <div className="mt-2 space-y-3">
+            {shippingMethods.map((method) => (
+              <label
+                key={method.ID}
+                className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
+                  formData.shippingMethod === method.ID.toString()
+                    ? 'border-accent bg-accent/5'
+                    : 'border-secondary/20 hover:border-accent/30'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="shippingMethod"
+                  value={method.ID}
+                  checked={formData.shippingMethod === method.ID.toString()}
+                  onChange={handleInputChange}
+                  className="sr-only"
+                />
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="block font-medium">{method.title}</span>
+                    <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
+                      {method.description}
+                    </span>
+                  </div>
+                  <span className="font-medium">€{parseFloat(method.price).toFixed(2)}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-700">
+              No shipping methods available at the moment. Please try again later.
+            </p>
+          </div>
+        )}
+        {errors.shippingMethod && (
+          <p className="mt-1 text-sm text-red-500">{errors.shippingMethod}</p>
+        )}
+      </div>
     </div>
   );
 
@@ -913,7 +983,7 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
-  // Update handleSaveAddress to check for maximum addresses
+  // Update handleSaveAddress to use the shipping method ID directly
   const handleSaveAddress = async () => {
     // Validation
     const newErrors = {};
@@ -934,11 +1004,8 @@ export default function CheckoutForm({ orderData }) {
 
     setIsLoading(true);
     try {
-      const shippingMethodValue = shippingMethodToApiValue[formData.shippingMethod];
-      
       let response;
       if (selectedAddressId && isEditingAddress) {
-        // Send the updated address data when editing
         response = await checkoutService.editShippingAddress(
           selectedAddressId,
           {
@@ -946,7 +1013,7 @@ export default function CheckoutForm({ orderData }) {
             city: formData.city,
             zipcode: formData.postcode,
             country: 'Nigeria',
-            shipping_method: shippingMethodValue
+            shipping_method: formData.shippingMethod // Use the ID directly
           }
         );
       } else {
@@ -964,7 +1031,7 @@ export default function CheckoutForm({ orderData }) {
           city: formData.city,
           zipcode: formData.postcode,
           country: 'Nigeria',
-          shipping_method: shippingMethodValue
+          shipping_method: formData.shippingMethod // Use the ID directly
         });
       }
 
@@ -1282,116 +1349,7 @@ export default function CheckoutForm({ orderData }) {
                   {step === 2 && renderShippingInformation()}
 
                   {/* Step 3: Shipping Method */}
-                  {step === 3 && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-semibold mb-6">Shipping Method</h2>
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium mb-2 text-text-primary dark:text-dark-text-primary">
-                          Select Shipping Method
-                        </label>
-                        <div className="mt-2 space-y-3">
-                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
-                            formData.shippingMethod === 'RoyalMailTracked48' 
-                              ? 'border-accent bg-accent/5' 
-                              : 'border-secondary/20 hover:border-accent/30'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="shippingMethod"
-                              value="RoyalMailTracked48"
-                              checked={formData.shippingMethod === 'RoyalMailTracked48'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <span className="block font-medium">Royal Mail Tracked 48</span>
-                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                                  Delivery within 2-3 working days with tracking updates
-                                </span>
-                              </div>
-                              <span className="font-medium">€3.39</span>
-                            </div>
-                          </label>
-                          
-                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
-                            formData.shippingMethod === 'RoyalMailTracked24' 
-                              ? 'border-accent bg-accent/5' 
-                              : 'border-secondary/20 hover:border-accent/30'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="shippingMethod"
-                              value="RoyalMailTracked24"
-                              checked={formData.shippingMethod === 'RoyalMailTracked24'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <span className="block font-medium">Royal Mail Tracked 24</span>
-                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                                  Super convenient next day delivery with notifications for the recipient
-                                </span>
-                              </div>
-                              <span className="font-medium">€4.25</span>
-                            </div>
-                          </label>
-                          
-                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
-                            formData.shippingMethod === 'RoyalMailSigned1stClass' 
-                              ? 'border-accent bg-accent/5' 
-                              : 'border-secondary/20 hover:border-accent/30'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="shippingMethod"
-                              value="RoyalMailSigned1stClass"
-                              checked={formData.shippingMethod === 'RoyalMailSigned1stClass'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <span className="block font-medium">Royal Mail Signed 1st Class</span>
-                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                                  Priority delivery with recipient signature confirmation
-                                </span>
-                              </div>
-                              <span className="font-medium">€5.49</span>
-                            </div>
-                          </label>
-                          
-                          <label className={`block relative p-4 border rounded-lg cursor-pointer transition-all ${
-                            formData.shippingMethod === 'RoyalMailTracked24Signed' 
-                              ? 'border-accent bg-accent/5' 
-                              : 'border-secondary/20 hover:border-accent/30'
-                          }`}>
-                            <input
-                              type="radio"
-                              name="shippingMethod"
-                              value="RoyalMailTracked24Signed"
-                              checked={formData.shippingMethod === 'RoyalMailTracked24Signed'}
-                              onChange={handleInputChange}
-                              className="sr-only"
-                            />
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <span className="block font-medium">Royal Mail Tracked 24 Signed</span>
-                                <span className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                                  Premium next day delivery with tracking and signature on delivery
-                                </span>
-                              </div>
-                              <span className="font-medium">€5.65</span>
-                            </div>
-                          </label>
-                        </div>
-                        {errors.shippingMethod && (
-                          <p className="mt-1 text-sm text-red-500">{errors.shippingMethod}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {step === 3 && renderShippingMethods()}
 
                   {/* Step 4: Payment Information (previously step 3) */}
                   {step === 4 && (

@@ -7,61 +7,76 @@ import { fadeInUp, staggerContainer } from '../animations/variants';
 import { PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { cookies } from '../utils/cookies';
+import orderService from '../api/orderService';
 
 export default function OrderPage() {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [product, setProduct] = useState({
+    id: '',
+    name: '',
+    description: '',
+    images: [],
+    features: [],
+    sizes: []
+  });
+  const [error, setError] = useState(null);
 
-  // Product information
-  const product = {
-    id: 'normal',
-    name: 'Traditional Locust Beans',
-    description: 'Authentic African locust beans, naturally fermented and carefully preserved for the ultimate taste experience. Perfect for soups, stews, and traditional African dishes.',
-    images: [
-      'images/featureImg2.jpeg',
-      'images/featureImg1.jpeg',
-      'images/featureImg3.jpeg'
-    ],
-    sizes: [
-      {
-        id: 'small',
-        name: 'Small',
-        weight: '100g',
-        price: 19.99,
-        stock: 15
-      },
-      {
-        id: 'medium',
-        name: 'Medium',
-        weight: '250g',
-        price: 39.99,
-        stock: 25
-      },
-      {
-        id: 'large',
-        name: 'Large',
-        weight: '500g',
-        price: 69.99,
-        stock: 10
+  // Fetch product data on mount
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await orderService.getProduct('847694');
+        
+        // The API returns code 400 but with valid data
+        if (response.data) {
+          const productData = response.data;
+          setProduct({
+            id: productData.ID.toString(),
+            name: productData.name,
+            description: productData.description,
+            images: productData.images.map(image => 
+              `${productData.image_base_url}${image}`
+            ),
+            features: productData.features || [],
+            sizes: (productData.sizes || []).map(size => ({
+              id: size.size.toLowerCase(),
+              name: size.size,
+              weight: size.weight,
+              price: size.price,
+              stock: size.quantity
+            }))
+          });
+          setIsLoading(false);
+        } else {
+          setError('No product data available');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setError(error.message || 'Failed to load product data');
+        setIsLoading(false);
       }
-    ]
-  };
+    };
+
+    fetchProduct();
+  }, []);
 
   // Load saved selections from cookies on mount
   useEffect(() => {
     const savedSelection = cookies.getOrderSelection();
-    if (savedSelection) {
+    if (savedSelection && savedSelection.size) {
       setSelectedSize(savedSelection.size);
-      setQuantity(savedSelection.quantity);
+      setQuantity(savedSelection.quantity || 1);
     }
   }, []);
 
   // Save selections to cookies whenever they change
   useEffect(() => {
-    if (selectedSize) {
+    if (selectedSize && product.id) {
       cookies.saveOrderSelection({
         size: selectedSize,
         quantity: quantity,
@@ -69,7 +84,7 @@ export default function OrderPage() {
         productName: product.name
       });
     }
-  }, [selectedSize, quantity]);
+  }, [selectedSize, quantity, product.id, product.name]);
 
   // Add useEffect for auto-sliding
   useEffect(() => {
@@ -163,9 +178,38 @@ export default function OrderPage() {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-500 mb-2">Error</h2>
+          <p className="text-text-secondary">{error}</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="mt-4"
+          >
+            Return to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        {/* Only render if we have product data */}
+        {product.images.length > 0 && (
+          <>
         <div className="mb-6">
           <BackButton />
         </div>
@@ -244,18 +288,11 @@ export default function OrderPage() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-3">Product Features:</h3>
                   <ul className="space-y-2">
-                    <li className="flex items-center text-text-secondary dark:text-dark-text-secondary">
-                      <span className="mr-2 text-accent">•</span> 100% Natural & Authentic
+                        {product.features.map((feature, index) => (
+                          <li key={index} className="flex items-center text-text-secondary dark:text-dark-text-secondary">
+                            <span className="mr-2 text-accent">•</span> {feature}
                     </li>
-                    <li className="flex items-center text-text-secondary dark:text-dark-text-secondary">
-                      <span className="mr-2 text-accent">•</span> Carefully fermented
-                    </li>
-                    <li className="flex items-center text-text-secondary dark:text-dark-text-secondary">
-                      <span className="mr-2 text-accent">•</span> Rich, bold flavor
-                    </li>
-                    <li className="flex items-center text-text-secondary dark:text-dark-text-secondary">
-                      <span className="mr-2 text-accent">•</span> No preservatives or additives
-                    </li>
+                        ))}
                   </ul>
                 </div>
               </div>
@@ -382,6 +419,8 @@ export default function OrderPage() {
             </Button>
           </motion.div>
         </motion.div>
+          </>
+        )}
       </div>
     </div>
   );

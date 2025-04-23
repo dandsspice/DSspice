@@ -123,6 +123,36 @@ const checkoutService = {
       };
     }
   },
+
+  // Add method to get shipping address by ID
+  getShippingAddressById: async (addressId) => {
+    try {
+      const response = await api.get(`/shipping/get/${addressId}`);
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred while fetching shipping address',
+        data: null,
+        errors: ['Failed to fetch shipping address']
+      };
+    }
+  },
+
+  // Add method to get shipping methods
+  getShippingMethods: async () => {
+    try {
+      const response = await api.get('/shipping/methods');
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred while fetching shipping methods',
+        data: [],
+        errors: ['Failed to fetch shipping methods']
+      };
+    }
+  },
 };
 
 export default checkoutService;
