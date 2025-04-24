@@ -31,15 +31,19 @@ export default function OrderPage() {
       try {
         const response = await orderService.getProduct('847694');
         
-        if (response.code === 200 && response.data) {
+        if (response.data) {
           const productData = response.data;
-          setProduct({
+          console.log('Raw product data:', productData); // Debug log
+
+          const formattedProduct = {
             id: productData.ID.toString(),
             name: productData.name,
             description: productData.description,
-            images: productData.images.map(image => 
-              `${productData.image_base_url}${image}`
-            ),
+            images: productData.images.map(image => {
+              const imageUrl = `${productData.image_base_url.replace(/\/$/, '')}/${image.replace(/^\//, '')}`;
+              console.log('Constructed image URL:', imageUrl); // Debug log
+              return imageUrl;
+            }),
             features: productData.features || [],
             sizes: (productData.sizes || []).map(size => ({
               id: size.size.toLowerCase(),
@@ -48,14 +52,16 @@ export default function OrderPage() {
               price: size.price,
               stock: size.quantity
             }))
-          });
+          };
+          setProduct(formattedProduct);
+          setIsLoading(false);
         } else {
-          setError('Failed to load product data');
+          setError('No product data available');
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
         setError(error.message || 'Failed to load product data');
-      } finally {
         setIsLoading(false);
       }
     };
@@ -86,16 +92,18 @@ export default function OrderPage() {
 
   // Add useEffect for auto-sliding
   useEffect(() => {
+    if (!product.images || product.images.length <= 1) return;
+
     const intervalId = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
-    }, 3000); // 3000ms = 3 seconds
+    }, 3000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, []); 
+  }, [product.images]); 
 
-  // Function to handle manual navigation that resets the timer
+  // Function to handle manual navigation
   const handleImageChange = (index) => {
+    if (!product.images || index >= product.images.length) return;
     setCurrentImageIndex(index);
   };
 
@@ -238,39 +246,62 @@ export default function OrderPage() {
             <div className="md:flex">
               <div className="md:w-2/5 relative">
                 <div className="relative h-64 md:h-full">
-                  <img 
-                    src={product.images[currentImageIndex]} 
-                    alt={`${product.name} - Image ${currentImageIndex + 1}`} 
-                    className="w-full h-full object-cover transition-opacity duration-500"
-                  />
-                  
-                  {/* Navigation Buttons */}
-                  <button 
-                    onClick={previousImage}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronLeftIcon className="w-6 h-6" />
-                  </button>
-                  
-                  <button 
-                    onClick={nextImage}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronRightIcon className="w-6 h-6" />
-                  </button>
-
-                  {/* Image Indicators */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleImageChange(index)}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          currentImageIndex === index ? 'bg-white' : 'bg-white/50'
-                        }`}
+                  {product.images && product.images.length > 0 ? (
+                    <>
+                      <img 
+                        src={product.images[currentImageIndex]} 
+                        alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                        className="w-full h-full object-cover transition-opacity duration-500"
+                        onError={(e) => {
+                          console.error('Image failed to load:', e.target.src);
+                          e.target.onerror = null; // Prevent infinite loop
+                          e.target.src = 'fallback-image-path.jpg'; // You can add a fallback image
+                        }}
                       />
-                    ))}
-                  </div>
+                      
+                      {/* Only show navigation if there's more than one image */}
+                      {product.images.length > 1 && (
+                        <>
+                          {/* Navigation Buttons */}
+                          <button 
+                            onClick={() => setCurrentImageIndex((prev) => 
+                              (prev - 1 + product.images.length) % product.images.length
+                            )}
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                          >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                          </button>
+                          
+                          <button 
+                            onClick={() => setCurrentImageIndex((prev) => 
+                              (prev + 1) % product.images.length
+                            )}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                          >
+                            <ChevronRightIcon className="w-6 h-6" />
+                          </button>
+
+                          {/* Image Indicators */}
+                          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                            {product.images.map((_, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setCurrentImageIndex(index)}
+                                className={`w-2 h-2 rounded-full transition-colors ${
+                                  currentImageIndex === index ? 'bg-white' : 'bg-white/50'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    // Fallback image or placeholder
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <p className="text-gray-500">No image available</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
