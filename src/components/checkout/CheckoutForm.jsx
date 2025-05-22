@@ -6,6 +6,7 @@ import authService from '../../api/authService';
 import orderService from '../../api/orderService';
 import {cookies} from '../../utils/cookies';
 import checkoutService from '../../api/checkoutService';
+import { useLoading } from '../../context/LoadingContext';
 
 // Add these utility functions at the top of the file
 const formatPhoneNumber = (value) => {
@@ -44,6 +45,7 @@ const MAX_SHIPPING_ADDRESSES = 3;
 export default function CheckoutForm({ orderData }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const orderDetails = location.state || {};
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -73,6 +75,9 @@ export default function CheckoutForm({ orderData }) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [defaultAddressId, setDefaultAddressId] = useState(null);
   const [shippingMethods, setShippingMethods] = useState([]);
+  const { showLoading, hideLoading } = useLoading();
+  const [apiRequest, setApiRequest] = useState(null);
+  const [apiResponse, setApiResponse] = useState(null);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -301,12 +306,18 @@ export default function CheckoutForm({ orderData }) {
 
   // Order Summary Component
   const OrderSummary = () => {
-    const orderDetails = location.state;
+    const orderDetails = location.state || orderData || {
+      typeName: 'Product',
+      size: { weight: '0g' },
+      quantity: 1,
+      totalPrice: 0
+    };
+    
     const selectedMethod = shippingMethods.find(
       m => m.ID.toString() === formData.shippingMethod
     );
     const shippingCost = selectedMethod ? parseFloat(selectedMethod.price) : 0;
-    const total = orderDetails.totalPrice + shippingCost;
+    const total = (orderDetails.totalPrice || 0) + shippingCost;
     
     return (
       <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
@@ -316,12 +327,12 @@ export default function CheckoutForm({ orderData }) {
         <div className="space-y-4">
           <div className="flex justify-between pb-4 border-b border-secondary/10">
             <div className="space-y-1">
-              <p className="font-medium">{orderDetails.typeName}</p>
+              <p className="font-medium">{orderDetails.typeName || 'Product'}</p>
               <p className="text-sm text-text-secondary">
-                {orderDetails.size.weight} × {orderDetails.quantity}
+                {orderDetails.size?.weight || '0g'} × {orderDetails.quantity || 1}
               </p>
             </div>
-            <p className="font-medium">€{orderDetails.totalPrice.toFixed(2)}</p>
+            <p className="font-medium">€{(orderDetails.totalPrice || 0).toFixed(2)}</p>
           </div>
           
           <div className="flex justify-between pb-4 border-b border-secondary/10">
@@ -559,6 +570,9 @@ export default function CheckoutForm({ orderData }) {
           {/* Only show Add New Address button if under the limit */}
           {savedAddresses.length < MAX_SHIPPING_ADDRESSES && (
             <div className="mt-4">
+             
+
+
               <button
                 onClick={() => {
                   setSelectedAddressId(null);
@@ -568,7 +582,7 @@ export default function CheckoutForm({ orderData }) {
                     address: '',
                     city: '',
                     postcode: '',
-                    country: 'Nigeria',
+                    country: '',
                     shippingMethod: 'RoyalMailTracked48'
                   }));
                 }}
@@ -655,19 +669,21 @@ export default function CheckoutForm({ orderData }) {
                 type="text"
                 id="country"
                 name="country"
-                value="Nigeria"
+                value={formData.country}
+                onChange={handleInputChange}
                 className={getInputStyles('country')}
                 required
-                readOnly
+                
               />
             </div>
           </div>
 
           {/* Save Address Button */}
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex justify-between">
             {errors.success && (
               <p className="text-green-500 text-sm mr-4 mt-2">{errors.success}</p>
             )}
+             <Button onClick={handleCloseAddress} className="text-sm text-accent">Close</Button>
             <Button
               variant="outline"
               onClick={handleSaveAddress}
@@ -732,6 +748,16 @@ export default function CheckoutForm({ orderData }) {
           <p className="mt-1 text-sm text-red-500">{errors.shippingMethod}</p>
         )}
       </div>
+      <div className="mt-6 flex justify-end">
+        <Button
+          variant="primary"
+          onClick={handleShippingProceed}
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Processing...' : 'Proceed'}
+        </Button>
+      </div>
     </div>
   );
 
@@ -772,7 +798,7 @@ export default function CheckoutForm({ orderData }) {
             address: formData.address,
             city: formData.city,
             zipcode: formData.postcode,
-            country: 'Nigeria',
+            country: formData.country,
             shipping_method: shippingMethodValue
           }
         );
@@ -782,7 +808,7 @@ export default function CheckoutForm({ orderData }) {
           address: formData.address,
           city: formData.city,
           zipcode: formData.postcode,
-          country: 'Nigeria',
+          country: formData.country,
           shipping_method: shippingMethodValue
         });
       }
@@ -917,7 +943,7 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
-  // Add this function to handle saving personal info changes
+  // Function to handle saving personal info changes
   const handleSavePersonalInfo = async () => {
     // First validate all required fields
     const newErrors = {};
@@ -983,6 +1009,8 @@ export default function CheckoutForm({ orderData }) {
     }
   };
 
+  
+
   // Update handleSaveAddress to use the shipping method ID directly
   const handleSaveAddress = async () => {
     // Validation
@@ -1012,7 +1040,7 @@ export default function CheckoutForm({ orderData }) {
             address: formData.address,
             city: formData.city,
             zipcode: formData.postcode,
-            country: 'Nigeria',
+            country: formData.country,
             shipping_method: formData.shippingMethod // Use the ID directly
           }
         );
@@ -1030,7 +1058,7 @@ export default function CheckoutForm({ orderData }) {
           address: formData.address,
           city: formData.city,
           zipcode: formData.postcode,
-          country: 'Nigeria',
+          country: formData.country,
           shipping_method: formData.shippingMethod // Use the ID directly
         });
       }
@@ -1074,6 +1102,287 @@ export default function CheckoutForm({ orderData }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleShippingProceed = async () => {
+    console.log('orderDetails:', orderDetails);
+    console.log('selectedAddressId:', selectedAddressId);
+    console.log('formData.shippingMethod:', formData.shippingMethod);
+    console.log('token:', cookies.getToken());
+    if (
+      !orderDetails.productId ||
+      !orderDetails.quantity ||
+      !orderDetails.sizeIndex ||
+      !selectedAddressId ||
+      !formData.shippingMethod
+    ) {
+      setErrors({ submit: "Please complete all order details before proceeding." });
+      return;
+    }
+
+    const token = cookies.getToken();
+    if (!token) {
+      setErrors({ submit: "You must be logged in to proceed." });
+      return;
+    }
+
+    const orderData = {
+      productID: orderDetails.productId,
+      quantity: orderDetails.quantity,
+      size_index: orderDetails.sizeIndex,
+      shipping_address: selectedAddressId,
+      shipping_method: formData.shippingMethod,
+      token,
+    };
+
+    showLoading();
+
+    try {
+      await orderService.createOrder(orderData);
+      // Optionally, move to next step or show a success message
+      // setStep(4);
+    } catch (error) {
+      setErrors({ submit: error.message || "Order failed" });
+    } finally {
+      hideLoading();
+    }
+  };
+
+  // Add this function near other handler functions
+  const handleCloseAddress = () => {
+    // Reset form data for address fields
+    setFormData(prev => ({
+      ...prev,
+      address: '',
+      city: '',
+      postcode: '',
+      country: '',
+      shippingMethod: 'RoyalMailTracked48'
+    }));
+    
+      // Set selectedAddressId to a non-null value to hide the form
+      setSelectedAddressId('closed');
+    
+    // Reset editing state
+    setIsEditingAddress(false);
+
+      
+    
+    // Clear any errors
+    setErrors(prev => {
+      const { address, city, postcode, success, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  // Add this function near other handler functions
+  const handleDeleteAddress = async (addressId) => {
+    try {
+      setIsLoading(true);
+      const response = await checkoutService.deleteShippingAddress(addressId);
+      
+      if (response.code === 200) {
+        // Remove the deleted address from the list
+        setSavedAddresses(prev => prev.filter(addr => addr.ID !== addressId));
+        
+        // If the deleted address was selected, clear the selection
+        if (selectedAddressId === addressId) {
+          setSelectedAddressId(null);
+        }
+        
+        // Show success message
+        setErrors({
+          success: 'Address deleted successfully!'
+        });
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setErrors(prev => {
+            const { success, ...rest } = prev;
+            return rest;
+          });
+        }, 3000);
+      } else {
+        setErrors({
+          submit: response.message || 'Failed to delete address'
+        });
+      }
+    } catch (error) {
+      setErrors({
+        submit: error.message || 'An error occurred while deleting the address'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const ChangePasswordForm = () => {
+    const [passwordData, setPasswordData] = useState({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    const [passwordErrors, setPasswordErrors] = useState({});
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+    const handlePasswordChange = (e) => {
+      const { name, value } = e.target;
+      setPasswordData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      // Clear error when field is edited
+      if (passwordErrors[name]) {
+        setPasswordErrors(prev => ({
+          ...prev,
+          [name]: null
+        }));
+      }
+    };
+
+    const handleChangePassword = async () => {
+      // Validate
+      const newErrors = {};
+      if (!passwordData.currentPassword) {
+        newErrors.currentPassword = 'Current password is required';
+      }
+      if (!passwordData.newPassword) {
+        newErrors.newPassword = 'New password is required';
+      }
+      if (!passwordData.confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your new password';
+      }
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setPasswordErrors(newErrors);
+        return;
+      }
+
+      setIsChangingPassword(true);
+      try {
+        const response = await authService.changePassword(
+          passwordData.currentPassword,
+          passwordData.newPassword,
+          passwordData.confirmPassword
+        );
+
+        if (response.code === 200) {
+          // Clear form and show success message
+          setPasswordData({
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          });
+          setShowPasswordForm(false);
+          setPasswordErrors({
+            success: 'Password changed successfully!'
+          });
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setPasswordErrors({});
+          }, 3000);
+        } else {
+          setPasswordErrors({
+            submit: response.message || 'Failed to change password'
+          });
+        }
+      } catch (error) {
+        setPasswordErrors({
+          submit: error.message || 'An error occurred while changing password'
+        });
+      } finally {
+        setIsChangingPassword(false);
+      }
+    };
+
+    return (
+      <div className="mt-8 pt-8 border-t border-secondary/20">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-semibold">Change Password</h3>
+          <Button
+            variant="outline"
+            onClick={() => setShowPasswordForm(!showPasswordForm)}
+            className="text-sm"
+          >
+            {showPasswordForm ? 'Cancel' : 'Change Password'}
+          </Button>
+        </div>
+
+        {showPasswordForm && (
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="currentPassword" className={labelClasses}>Current Password</label>
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={handlePasswordChange}
+                className={getInputStyles('currentPassword')}
+                required
+              />
+              {passwordErrors.currentPassword && (
+                <p className={errorClasses}>{passwordErrors.currentPassword}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="newPassword" className={labelClasses}>New Password</label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                value={passwordData.newPassword}
+                onChange={handlePasswordChange}
+                className={getInputStyles('newPassword')}
+                required
+              />
+              {passwordErrors.newPassword && (
+                <p className={errorClasses}>{passwordErrors.newPassword}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className={labelClasses}>Confirm New Password</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={passwordData.confirmPassword}
+                onChange={handlePasswordChange}
+                className={getInputStyles('confirmPassword')}
+                required
+              />
+              {passwordErrors.confirmPassword && (
+                <p className={errorClasses}>{passwordErrors.confirmPassword}</p>
+              )}
+            </div>
+
+            {passwordErrors.submit && (
+              <p className="text-red-500 text-sm">{passwordErrors.submit}</p>
+            )}
+            {passwordErrors.success && (
+              <p className="text-green-500 text-sm">{passwordErrors.success}</p>
+            )}
+
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                onClick={handleChangePassword}
+                className="w-32"
+                disabled={isChangingPassword}
+              >
+                {isChangingPassword ? 'Changing...' : 'Change Password'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -1341,6 +1650,8 @@ export default function CheckoutForm({ orderData }) {
                             </p>
                           </div>
                         </div>
+                        
+                        <ChangePasswordForm />
                       </div>
                     )
                   )}
@@ -1472,6 +1783,7 @@ export default function CheckoutForm({ orderData }) {
           </div>
         </>
       )}
+
     </div>
   );
 } 

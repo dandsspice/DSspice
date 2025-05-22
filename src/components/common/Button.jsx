@@ -55,13 +55,13 @@ export default function Button({
 
   const MotionComponent = motion.button;
   const animationProps = isAnimated ? {
-    whileHover: expandOnHover ? { 
+    whilehover: expandOnHover ? { 
       scale: 1.05,
       transition: { duration: 0.2 }
     } : {
       scale: 1.02
     },
-    whileTap: { scale: 0.98 },
+    whiletap: { scale: 0.98 },
     transition: { duration: 0.2 }
   } : {};
 

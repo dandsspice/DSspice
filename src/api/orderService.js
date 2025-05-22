@@ -1,17 +1,20 @@
 import api from './axios';
 
 const orderService = {
-  createOrder: async (orderData) => {
+  createOrder: async ({ productID, quantity, size_index, shipping_address, shipping_method, token }) => {
     try {
-      // Create FormData object to match API requirements
       const formData = new FormData();
-      formData.append('productID', orderData.productId);
-      formData.append('quantity', orderData.quantity.toString());
-      formData.append('size_index', orderData.sizeIndex.toString());
-      formData.append('shipping_address', orderData.shippingAddress);
-      formData.append('shipping_method', orderData.shippingMethod.toString());
+      formData.append('productID', productID);
+      formData.append('quantity', quantity.toString());
+      formData.append('size_index', size_index.toString());
+      formData.append('shipping_address', shipping_address);
+      formData.append('shipping_method', shipping_method.toString());
 
-      const response = await api.post('/order', formData);
+      const response = await api.post('/order', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error creating order' };

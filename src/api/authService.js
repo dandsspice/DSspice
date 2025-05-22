@@ -7,7 +7,9 @@ const authService = {
       // FormData object to match API requirements
       const formData = new FormData();
       formData.append('email', email);
-      formData.append('password', password);
+      // Properly encode password in base64
+      const encodedPassword = btoa(unescape(encodeURIComponent(password)));
+      formData.append('password', encodedPassword);
 
       const response = await api.post('/auth/login', formData, {
         headers: {
@@ -42,10 +44,14 @@ const authService = {
       formData.append('last_name', userData.lastName);
       formData.append('email', userData.email);
       formData.append('phone_number', userData.phone);
-      formData.append('password', userData.password);
-      formData.append('confirm_password', userData.password);
+      
+      // encode password in base64
+      const encodedPassword = btoa(unescape(encodeURIComponent(userData.password)));
+      formData.append('password', encodedPassword);
+      formData.append('confirm_password', encodedPassword);
 
-      // Api instance instead of full URL
+    
+
       const response = await api.post('/auth/register', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -58,7 +64,14 @@ const authService = {
       }
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during signup' };
+      // Improved error handling
+      console.error('Registration error:', error.response?.data || error);
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred during signup',
+        data: null,
+        errors: error.message
+      };
     }
   },
 

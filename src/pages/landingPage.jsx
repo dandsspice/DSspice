@@ -247,27 +247,25 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   to="/order"
-                  className="w-full sm:w-auto">
+                  className="w-full sm:w-auto"
+                >
                   <Button
                     variant="primary"
                     size="large"
-                    fullWidth
+                    fullWidth={true}
                   >
                     Order Now
                   </Button>
                 </Link>
-                <button
-                  onClick={() => scrollToSection(aboutRef)}
+                <Button
+                  variant="outline"
                   className="w-full sm:w-auto text-white"
+                  size="large"
+                  fullWidth={true}
+                  onClick={() => scrollToSection(aboutRef)}
                 >
-                  <Button
-                    variant="outline"
-                    size="large"
-                    fullWidth
-                  >
-                    Learn More
-                  </Button>
-                </button>
+                  Learn More
+                </Button>
               </div>
             </AnimatedText>
           </motion.div>
