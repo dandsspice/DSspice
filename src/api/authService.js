@@ -147,6 +147,38 @@ const authService = {
 
   isAuthenticated: () => {
     return !!cookies.getToken();
+  },
+
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    try {
+      // FormData object to match API requirements
+      const formData = new FormData();
+      
+      // Properly encode passwords in base64
+      const encodedCurrentPassword = btoa(unescape(encodeURIComponent(currentPassword)));
+      const encodedNewPassword = btoa(unescape(encodeURIComponent(newPassword)));
+      const encodedConfirmPassword = btoa(unescape(encodeURIComponent(confirmPassword)));
+      
+      formData.append('current_password', encodedCurrentPassword);
+      formData.append('new_password', encodedNewPassword);
+      formData.append('confirm_password', encodedConfirmPassword);
+
+      const response = await api.post('/user/changepassword', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${cookies.getToken()}`
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred while changing password',
+        data: null,
+        errors: null
+      };
+    }
   }
 };
 
