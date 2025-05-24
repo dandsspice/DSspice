@@ -26,6 +26,15 @@ const authService = {
       }
       return response.data;
     } catch (error) {
+      // Handle blocked account specifically
+      if (error.response?.status === 403) {
+        return {
+          code: 403,
+          message: error.response.data.message || 'Account has been blocked',
+          data: null,
+          errors: null
+        };
+      }
       // Return the error response in the same format as the API
       return error.response?.data || {
         code: 500,

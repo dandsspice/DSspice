@@ -59,6 +59,82 @@ const BlockedAccountMessage = ({ message }) => (
   </div>
 );
 
+// Add this component near the top of the file with other components
+const PaymentHistory = ({ payments }) => (
+  <div className="space-y-4">
+    <h3 className="text-lg font-semibold mb-4">Payment History</h3>
+    {payments.length > 0 ? (
+      <div className="space-y-4">
+        {payments.map((payment) => (
+          <div 
+            key={payment.ID}
+            className="bg-background-alt dark:bg-dark-background-alt p-4 rounded-lg border border-secondary/20"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="font-medium">Order #{payment.orderID}</p>
+                <p className="text-sm text-text-secondary">
+                  Payment ID: {payment.ID}
+                </p>
+                <p className="text-sm text-text-secondary">
+                  User ID: {payment.userID}
+                </p>
+                <p className="text-sm text-text-secondary">
+                  Product ID: {payment.productID}
+                </p>
+                <p className="text-sm text-text-secondary">
+                  Created: {new Date(payment.created_at).toLocaleDateString()}
+                </p>
+                <p className="text-sm text-text-secondary">
+                  Customer: {payment.customer_email}
+                </p>
+                {payment.payment_intent && (
+                  <p className="text-sm text-text-secondary">
+                    Payment Intent: {payment.payment_intent}
+                  </p>
+                )}
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                payment.status === 'paid' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {payment.status.toUpperCase()}
+              </span>
+            </div>
+            <div className="mt-2">
+              <p className="text-sm">
+                Amount: {payment.currency.toUpperCase()} {parseFloat(payment.amount).toFixed(2)}
+              </p>
+              {payment.checkout_url && payment.status === 'unpaid' && (
+                <a 
+                  href={payment.checkout_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-sm text-accent hover:underline"
+                >
+                  Complete Payment
+                </a>
+              )}
+            </div>
+            {/* Add metadata display */}
+            {payment.metadata && (
+              <div className="mt-2 text-xs text-text-secondary">
+                <p>Last Updated: {new Date(payment.updated_at).toLocaleString()}</p>
+                <p>Metadata: {payment.metadata}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="text-center py-8 text-text-secondary">
+        <p>No payment history available</p>
+      </div>
+    )}
+  </div>
+);
+
 export default function CheckoutForm({ orderData }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -95,6 +171,8 @@ export default function CheckoutForm({ orderData }) {
   const { showLoading, hideLoading } = useLoading();
   const [apiRequest, setApiRequest] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -193,6 +271,27 @@ export default function CheckoutForm({ orderData }) {
 
     loadShippingMethods();
   }, []);
+
+  // Add useEffect to fetch payments when authenticated
+  useEffect(() => {
+    const fetchPayments = async () => {
+      if (isAuthenticated) {
+        setIsLoadingPayments(true);
+        try {
+          const response = await checkoutService.getPayments();
+          if (response.code === 200) {
+            setPayments(response.data.payments || []);
+          }
+        } catch (error) {
+          console.error('Error fetching payments:', error);
+        } finally {
+          setIsLoadingPayments(false);
+        }
+      }
+    };
+
+    fetchPayments();
+  }, [isAuthenticated]);
 
   // Add utility function to convert API shipping method value to UI value
   const getShippingMethodFromValue = (value) => {
@@ -337,36 +436,51 @@ export default function CheckoutForm({ orderData }) {
     const total = (orderDetails.totalPrice || 0) + shippingCost;
     
     return (
-      <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
-        <h3 className="text-lg font-semibold mb-4">
-          Order Summary
-        </h3>
-        <div className="space-y-4">
-          <div className="flex justify-between pb-4 border-b border-secondary/10">
-            <div className="space-y-1">
-              <p className="font-medium">{orderDetails.typeName || 'Product'}</p>
-              <p className="text-sm text-text-secondary">
-                {orderDetails.size?.weight || '0g'} × {orderDetails.quantity || 1}
-              </p>
+      <div className="space-y-6">
+        <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
+          <h3 className="text-lg font-semibold mb-4">
+            Order Summary
+          </h3>
+          <div className="space-y-4">
+            <div className="flex justify-between pb-4 border-b border-secondary/10">
+              <div className="space-y-1">
+                <p className="font-medium">{orderDetails.typeName || 'Product'}</p>
+                <p className="text-sm text-text-secondary">
+                  {orderDetails.size?.weight || '0g'} × {orderDetails.quantity || 1}
+                </p>
+              </div>
+              <p className="font-medium">gbp{(orderDetails.totalPrice || 0).toFixed(2)}</p>
             </div>
-            <p className="font-medium">gbp{(orderDetails.totalPrice || 0).toFixed(2)}</p>
-          </div>
-          
-          <div className="flex justify-between pb-4 border-b border-secondary/10">
-            <div className="space-y-1">
-              <p>Shipping</p>
-              <p className="text-sm text-text-secondary">
-                {selectedMethod?.title || 'No shipping method selected'}
-              </p>
+            
+            <div className="flex justify-between pb-4 border-b border-secondary/10">
+              <div className="space-y-1">
+                <p>Shipping</p>
+                <p className="text-sm text-text-secondary">
+                  {selectedMethod?.title || 'No shipping method selected'}
+                </p>
+              </div>
+              <p>gbp{shippingCost.toFixed(2)}</p>
             </div>
-            <p>gbp{shippingCost.toFixed(2)}</p>
-          </div>
-          
-          <div className="flex justify-between text-lg font-bold">
-            <p>Total</p>
-            <p>gbp{total.toFixed(2)}</p>
+            
+            <div className="flex justify-between text-lg font-bold">
+              <p>Total</p>
+              <p>gbp{total.toFixed(2)}</p>
+            </div>
           </div>
         </div>
+
+        {/* Add Payment History section */}
+        {isAuthenticated && (
+          <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
+            {isLoadingPayments ? (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : (
+              <PaymentHistory payments={payments} />
+            )}
+          </div>
+        )}
       </div>
     );
   };
