@@ -42,6 +42,23 @@ const shippingMethodToApiValue = {
 // Add a constant for maximum addresses
 const MAX_SHIPPING_ADDRESSES = 3;
 
+// Add this component near the top of the file, after imports
+const BlockedAccountMessage = ({ message }) => (
+  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div className="flex">
+      <div className="flex-shrink-0">
+        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+        </svg>
+      </div>
+      <div className="ml-3">
+        <h3 className="text-sm font-medium text-red-800">Account Blocked</h3>
+        <div className="mt-2 text-sm text-red-700" dangerouslySetInnerHTML={{ __html: message }} />
+      </div>
+    </div>
+  </div>
+);
+
 export default function CheckoutForm({ orderData }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -332,7 +349,7 @@ export default function CheckoutForm({ orderData }) {
                 {orderDetails.size?.weight || '0g'} × {orderDetails.quantity || 1}
               </p>
             </div>
-            <p className="font-medium">€{(orderDetails.totalPrice || 0).toFixed(2)}</p>
+            <p className="font-medium">gbp{(orderDetails.totalPrice || 0).toFixed(2)}</p>
           </div>
           
           <div className="flex justify-between pb-4 border-b border-secondary/10">
@@ -342,12 +359,12 @@ export default function CheckoutForm({ orderData }) {
                 {selectedMethod?.title || 'No shipping method selected'}
               </p>
             </div>
-            <p>€{shippingCost.toFixed(2)}</p>
+            <p>gbp{shippingCost.toFixed(2)}</p>
           </div>
           
           <div className="flex justify-between text-lg font-bold">
             <p>Total</p>
-            <p>€{total.toFixed(2)}</p>
+            <p>gbp{total.toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -732,7 +749,7 @@ export default function CheckoutForm({ orderData }) {
                       {method.description}
                     </span>
                   </div>
-                  <span className="font-medium">€{parseFloat(method.price).toFixed(2)}</span>
+                  <span className="font-medium">gbp{parseFloat(method.price).toFixed(2)}</span>
                 </div>
               </label>
             ))}
@@ -888,6 +905,11 @@ export default function CheckoutForm({ orderData }) {
           }));
         }
         handleNext();
+      } else if (response.code === 403) {
+        // Handle blocked account
+        setErrors({
+          auth: response.message || 'Your account has been blocked'
+        });
       } else {
         setErrors({
           auth: response.message || 'Authentication failed'
@@ -1425,9 +1447,14 @@ export default function CheckoutForm({ orderData }) {
                   {step === 1 && (
                     !isAuthenticated ? (
                       <div className="space-y-6">
-                        <h2 className="text-3xl text-center  font-bold mb-6">
+                        <h2 className="text-3xl text-center font-bold mb-6">
                           {authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
                         </h2>
+                        
+                        {/* Add the blocked account message component */}
+                        {errors.auth && errors.auth.includes('blocked') && (
+                          <BlockedAccountMessage message={errors.auth} />
+                        )}
                         
                         {authMode === 'signup' && (
                           <div className="space-y-6">

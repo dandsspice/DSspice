@@ -374,7 +374,7 @@ export default function OrderPage() {
                       </div>
                     </div>
                     <p className="text-accent font-bold">
-                      €{size.price.toFixed(2)}
+                      gbp{size.price.toFixed(2)}
                     </p>
                   </div>
                 </button>
@@ -416,7 +416,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per unit:</span>
-                    <span>€{selectedSize.price.toFixed(2)}</span>
+                    <span>gbp{selectedSize.price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Quantity:</span>
@@ -424,7 +424,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between font-bold pt-2 border-t border-accent/20">
                     <span>Subtotal:</span>
-                    <span>€{(selectedSize.price * quantity).toFixed(2)}</span>
+                    <span>gbp{(selectedSize.price * quantity).toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-2">
                     *Shipping costs will be calculated at checkout
