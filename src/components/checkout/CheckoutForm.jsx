@@ -61,7 +61,8 @@ const BlockedAccountMessage = ({ message }) => (
 
 // Add this component near the top of the file with other components
 const PaymentHistory = ({ payments }) => (
-  <div className="space-y-4">
+  <div>
+    <div className="space-y-4">
     <h3 className="text-lg font-semibold mb-4">Payment History</h3>
     {payments.length > 0 ? (
       <div className="space-y-4">
@@ -132,6 +133,7 @@ const PaymentHistory = ({ payments }) => (
         <p>No payment history available</p>
       </div>
     )}
+  </div>
   </div>
 );
 
