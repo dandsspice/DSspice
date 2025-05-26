@@ -809,71 +809,49 @@ export default function CheckoutForm({ orderData }) {
 
   // Form submission
   const handleSubmit = async () => {
-    // Validate required shipping fields
-    const newErrors = {};
-    
-    if (!formData.address || !formData.city || !formData.postcode || !formData.country) {
-      newErrors.shippingAddress = 'All shipping fields are required.';
-    }
-    if (!formData.shippingMethod) {
-      newErrors.shippingMethod = 'Shipping Method is required.';
-    }
-
-    // If there are validation errors, show them and don't proceed
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
     setIsLoading(true);
     try {
-      let shippingResponse;
-      const shippingMethodValue = shippingMethodToApiValue[formData.shippingMethod];
+      // Get order data from location state
+      const orderDetails = location.state;
       
-      if (selectedAddressId && !isEditingAddress) {
-        // Use existing address
-        shippingResponse = { 
-          code: 200, 
-          data: { ID: selectedAddressId }
-        };
-      } else if (selectedAddressId && isEditingAddress) {
-        // Update existing address
-        shippingResponse = await checkoutService.editShippingAddress(
-          selectedAddressId,
-          {
-            address: formData.address,
-            city: formData.city,
-            zipcode: formData.postcode,
-            country: formData.country,
-            shipping_method: shippingMethodValue
-          }
-        );
-      } else {
-        // Create new address
-        shippingResponse = await checkoutService.addShippingAddress({
-          address: formData.address,
-          city: formData.city,
-          zipcode: formData.postcode,
-          country: formData.country,
-          shipping_method: shippingMethodValue
-        });
+      // Validate all required fields
+      if (!orderDetails?.productId) {
+        setErrors({ submit: "Product ID is required" });
+        return;
       }
-
-      if (shippingResponse.code !== 200) {
-        setErrors({
-          submit: shippingResponse.message || 'Failed to save shipping address'
-        });
+      if (!orderDetails?.quantity) {
+        setErrors({ submit: "Quantity is required" });
+        return;
+      }
+      if (!orderDetails?.sizeIndex) {
+        setErrors({ submit: "Size Index is required" });
+        return;
+      }
+      if (!selectedAddressId) {
+        setErrors({ submit: "Shipping Address is required" });
+        return;
+      }
+      if (!formData.shippingMethod) {
+        setErrors({ submit: "Shipping Method is required" });
         return;
       }
 
-      // Get order data from location state
-      const orderDetails = location.state;
+      const token = cookies.getToken();
+      if (!token) {
+        setErrors({ submit: "You must be logged in to proceed." });
+        return;
+      }
 
       const orderData = {
-        ...orderDetails,
-        shippingId: shippingResponse.data.ID,
-        shippingMethod: shippingMethodValue
+        productID: orderDetails.productId,
+        quantity: orderDetails.quantity,
+        size_index: orderDetails.sizeIndex,
+        shipping_address: selectedAddressId,
+        shipping_method: formData.shippingMethod,
+        token
       };
+
+      console.log('Submitting order with data:', orderData); // Debug log
 
       const response = await orderService.createOrder(orderData);
 
@@ -881,23 +859,23 @@ export default function CheckoutForm({ orderData }) {
         // Clear the order selection from cookies since order is complete
         cookies.clearOrderSelection();
         setIsComplete(true);
+        
+        // Show success message with order details
+        setErrors({
+          success: `Order created successfully! Order ID: ${response.data?.ID}`
+        });
       } else {
+        // Handle validation errors
         if (response.errors && Array.isArray(response.errors)) {
-          const fieldErrors = {};
-          response.errors.forEach(error => {
-            if (error.includes('Shipping Address')) fieldErrors.shippingAddress = error;
-            if (error.includes('Shipping Method')) fieldErrors.shippingMethod = error;
-          });
-          setErrors(fieldErrors);
+          const errorMessages = response.errors.join(', ');
+          setErrors({ submit: errorMessages });
         } else {
-          setErrors({ 
-            submit: response.message || 'Failed to process order. Please try again.' 
-          });
+          setErrors({ submit: response.message || 'Failed to process order' });
         }
       }
     } catch (error) {
-      setErrors({ 
-        submit: error.message || 'An error occurred while processing your order.' 
+      setErrors({
+        submit: error.message || 'An error occurred while processing your order.'
       });
     } finally {
       setIsLoading(false);
@@ -1183,15 +1161,30 @@ export default function CheckoutForm({ orderData }) {
       size_index: orderDetails.sizeIndex,
       shipping_address: selectedAddressId,
       shipping_method: formData.shippingMethod,
-      token,
+      token
     };
+
+    console.log('Submitting order with data:', orderData); // Debug log
 
     showLoading();
 
     try {
-      await orderService.createOrder(orderData);
-      // Optionally, move to next step or show a success message
-      // setStep(4);
+      const response = await orderService.createOrder(orderData);
+      
+      if (response.code === 200) {
+        cookies.clearOrderSelection();
+        setIsComplete(true);
+        setErrors({
+          success: `Order created successfully! Order ID: ${response.data?.ID}`
+        });
+      } else {
+        if (response.errors && Array.isArray(response.errors)) {
+          const errorMessages = response.errors.join(', ');
+          setErrors({ submit: errorMessages });
+        } else {
+          setErrors({ submit: response.message || "Order failed" });
+        }
+      }
     } catch (error) {
       setErrors({ submit: error.message || "Order failed" });
     } finally {

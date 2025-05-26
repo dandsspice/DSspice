@@ -13,11 +13,23 @@ const orderService = {
       const response = await api.post('/freshorder/create', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
         }
       });
-      return response.data;
+
+      return {
+        code: response.data.code,
+        message: response.data.message,
+        data: response.data.data,
+        errors: response.data.errors
+      };
     } catch (error) {
-      throw error.response?.data || { message: 'Error creating order' };
+      return {
+        code: error.response?.data?.code || 500,
+        message: error.response?.data?.message || 'Error creating order',
+        data: null,
+        errors: error.response?.data?.errors || ['Failed to create order']
+      };
     }
   },
 
@@ -32,17 +44,15 @@ const orderService = {
 
   getProduct: async (productId) => {
     try {
-      // Use the full API URL
       const response = await api.get(`/product/${productId}`);
-return response.data;
-     
+      return response.data;
     } catch (error) {
       throw { message: 'Error fetching product' };
     }
   },
 };
 
-export default orderService; 
+export default orderService;
 
 
 
