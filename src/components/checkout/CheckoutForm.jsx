@@ -59,83 +59,7 @@ const BlockedAccountMessage = ({ message }) => (
   </div>
 );
 
-// Add this component near the top of the file with other components
-const PaymentHistory = ({ payments }) => (
-  <div>
-    <div className="space-y-4">
-    <h3 className="text-lg font-semibold mb-4">Payment History</h3>
-    {payments.length > 0 ? (
-      <div className="space-y-4">
-        {payments.map((payment) => (
-          <div 
-            key={payment.ID}
-            className="bg-background-alt dark:bg-dark-background-alt p-4 rounded-lg border border-secondary/20"
-          >
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="font-medium">Order #{payment.orderID}</p>
-                <p className="text-sm text-text-secondary">
-                  Payment ID: {payment.ID}
-                </p>
-                <p className="text-sm text-text-secondary">
-                  User ID: {payment.userID}
-                </p>
-                <p className="text-sm text-text-secondary">
-                  Product ID: {payment.productID}
-                </p>
-                <p className="text-sm text-text-secondary">
-                  Created: {new Date(payment.created_at).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-text-secondary">
-                  Customer: {payment.customer_email}
-                </p>
-                {payment.payment_intent && (
-                  <p className="text-sm text-text-secondary">
-                    Payment Intent: {payment.payment_intent}
-                  </p>
-                )}
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                payment.status === 'paid' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {payment.status.toUpperCase()}
-              </span>
-            </div>
-            <div className="mt-2">
-              <p className="text-sm">
-                Amount: {payment.currency.toUpperCase()} {parseFloat(payment.amount).toFixed(2)}
-              </p>
-              {payment.checkout_url && payment.status === 'unpaid' && (
-                <a 
-                  href={payment.checkout_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-sm text-accent hover:underline"
-                >
-                  Complete Payment
-                </a>
-              )}
-            </div>
-            {/* Add metadata display */}
-            {payment.metadata && (
-              <div className="mt-2 text-xs text-text-secondary">
-                <p>Last Updated: {new Date(payment.updated_at).toLocaleString()}</p>
-                <p>Metadata: {payment.metadata}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center py-8 text-text-secondary">
-        <p>No payment history available</p>
-      </div>
-    )}
-  </div>
-  </div>
-);
+
 
 export default function CheckoutForm({ orderData }) {
   const navigate = useNavigate();
@@ -471,18 +395,7 @@ export default function CheckoutForm({ orderData }) {
           </div>
         </div>
 
-        {/* Add Payment History section */}
-        {isAuthenticated && (
-          <div className="bg-background-alt dark:bg-dark-background-alt p-6 rounded-2xl">
-            {isLoadingPayments ? (
-              <div className="flex justify-center items-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
-              </div>
-            ) : (
-              <PaymentHistory payments={payments} />
-            )}
-          </div>
-        )}
+     
       </div>
     );
   };
@@ -490,7 +403,7 @@ export default function CheckoutForm({ orderData }) {
   // Progress Steps Component
   const ProgressSteps = () => (
     <div className="flex justify-between mb-8">
-      {['Personal Info', 'Shipping Info', 'Shipping Method', 'Payment'].map((label, index) => (
+      {['Personal Info', 'Shipping Info', 'Shipping Method'].map((label, index) => (
         <div key={label} className="flex items-center">
           <motion.div
             initial={{ scale: 0.8 }}
@@ -510,7 +423,7 @@ export default function CheckoutForm({ orderData }) {
             {index + 1}
           </motion.div>
           <span className="ml-2 hidden sm:inline">{label}</span>
-          {index < 3 && (
+          {index < 2 && (
             <div className="mx-4 flex-1 h-0.5 bg-secondary/20" />
           )}
         </div>
@@ -1805,7 +1718,8 @@ export default function CheckoutForm({ orderData }) {
                   {/* Step 3: Shipping Method */}
                   {step === 3 && renderShippingMethods()}
 
-                  {/* Step 4: Payment Information (previously step 3) */}
+                  {/* Step 4: Payment Information (commented out for future use) */}
+                  {/* 
                   {step === 4 && (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold mb-6">Payment Information</h2>
@@ -1834,7 +1748,7 @@ export default function CheckoutForm({ orderData }) {
                           onChange={handleInputChange}
                           className={getInputStyles('cardNumber')}
                           placeholder="1234 5678 9012 3456"
-                          maxLength="19" // 16 digits + 3 spaces
+                          maxLength="19"
                           required
                         />
                         {errors.cardNumber && (
@@ -1879,6 +1793,7 @@ export default function CheckoutForm({ orderData }) {
                       </div>
                     </div>
                   )}
+                  */}
                 </motion.div>
               </AnimatePresence>
 
@@ -1894,7 +1809,7 @@ export default function CheckoutForm({ orderData }) {
                   </Button>
                 )}
                 <div className="ml-auto">
-                  {step === 1 && !isAuthenticated ? null : step < 4 ? (
+                  {step === 1 && !isAuthenticated ? null : step < 3 ? (
                     <Button
                       variant="primary"
                       onClick={handleNext}

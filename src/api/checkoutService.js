@@ -155,26 +155,26 @@ const checkoutService = {
   },
 
   // Add method to get all payments
-  getPayments: async () => {
-    try {
-      const response = await api.get('/payments', {
-        headers: {
-          'Authorization': `Bearer ${cookies.getToken()}`
-        }
-      });
-      return response.data;
-    } catch (error) {
-      return error.response?.data || {
-        code: 500,
-        message: 'An error occurred while fetching payments',
-        data: {
-          next: null,
-          payments: []
-        },
-        errors: ['Failed to fetch payments']
-      };
-    }
-  },
+  // getPayments: async () => {
+  //   try {
+  //     const response = await api.get('/payments', {
+  //       headers: {
+  //         'Authorization': `Bearer ${cookies.getToken()}`
+  //       }
+  //     });
+  //     return response.data;
+  //   } catch (error) {
+  //     return error.response?.data || {
+  //       code: 500,
+  //       message: 'An error occurred while fetching payments',
+  //       data: {
+  //         next: null,
+  //         payments: []
+  //       },
+  //       errors: ['Failed to fetch payments']
+  //     };
+  //   }
+  // },
 };
 
 export default checkoutService;
