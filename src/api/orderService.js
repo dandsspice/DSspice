@@ -10,7 +10,7 @@ const orderService = {
       formData.append('shipping_address', shipping_address);
       formData.append('shipping_method', shipping_method.toString());
 
-      const response = await api.post('/order', formData, {
+      const response = await api.post('/freshorder/create', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
