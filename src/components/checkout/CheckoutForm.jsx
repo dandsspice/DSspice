@@ -456,8 +456,9 @@ export default function CheckoutForm({ orderData }) {
       <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
         Thank you for your order. We've sent a confirmation email to {formData.email}
       </p>
-      <div className="max-w-sm mx-auto bg-background-alt dark:bg-dark-background-alt rounded-lg p-6 mb-8">
-        <h3 className="font-semibold mb-4">Order Summary</h3>
+      <p className="text-text-secondary dark:text-dark-text-secondary text-sm"><strong>Note: </strong> If you do not proceed with payment within 24 hours, your order request will be automatically deleted.</p>
+      <div className="max-w-sm mx-auto bg-background-alt dark:bg-dark-background-alt rounded-lg p-6 mb-8 mt-8">
+        <h3 className="font-semibold mb-4 ">Order Summary</h3>
         <p className="text-sm mb-2">Order #: {Date.now().toString().slice(-8)}</p>
         <p className="text-sm">Estimated delivery: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
       </div>
@@ -466,7 +467,7 @@ export default function CheckoutForm({ orderData }) {
         onClick={() => window.location.href = '/'}
         className="w-full sm:w-auto"
       >
-        Return to Home
+        Proceed to make payment
       </Button>
     </motion.div>
   );
