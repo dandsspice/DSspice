@@ -50,6 +50,29 @@ const orderService = {
       throw { message: 'Error fetching product' };
     }
   },
+
+  getPaymentStatus: async (paymentId, token) => {
+    try {
+      const response = await api.get(`/payment/status/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return {
+        code: response.data.code,
+        message: response.data.message,
+        data: response.data.data,
+        errors: response.data.errors
+      };
+    } catch (error) {
+      return {
+        code: error.response?.data?.code || 500,
+        message: error.response?.data?.message || 'Error checking payment status',
+        data: null,
+        errors: error.response?.data?.errors || ['Failed to check payment status']
+      };
+    }
+  },
 };
 
 export default orderService;

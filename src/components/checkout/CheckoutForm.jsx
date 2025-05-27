@@ -99,6 +99,9 @@ export default function CheckoutForm({ orderData }) {
   const [apiResponse, setApiResponse] = useState(null);
   const [payments, setPayments] = useState([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [paymentId, setPaymentId] = useState(null);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -432,45 +435,83 @@ export default function CheckoutForm({ orderData }) {
   );
 
   // Add success screen component
-  const SuccessScreen = () => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-12 px-4"
-    >
-      <div className="mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center"
-        >
-          <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </motion.div>
-      </div>
-      <h2 className="text-2xl font-bold mb-4 text-text-primary dark:text-dark-text-primary">
-        Order Confirmed!
-      </h2>
-      <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
-        Thank you for your order. We've sent a confirmation email to {formData.email}
-      </p>
-      <p className="text-text-secondary dark:text-dark-text-secondary text-sm"><strong>Note: </strong> If you do not proceed with payment within 24 hours, your order request will be automatically deleted.</p>
-      <div className="max-w-sm mx-auto bg-background-alt dark:bg-dark-background-alt rounded-lg p-6 mb-8 mt-8">
-        <h3 className="font-semibold mb-4 ">Order Summary</h3>
-        <p className="text-sm mb-2">Order #: {Date.now().toString().slice(-8)}</p>
-        <p className="text-sm">Estimated delivery: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
-      </div>
-      <Button
-        variant="primary"
-        onClick={() => window.location.href = '/'}
-        className="w-full sm:w-auto"
+  const SuccessScreen = () => {
+    const handleProceedToPayment = async () => {
+      if (!paymentUrl) {
+        setErrors({ submit: "Payment URL not available" });
+        return;
+      }
+
+      try {
+        const token = cookies.getToken();
+        if (!token) {
+          setErrors({ submit: "You must be logged in to proceed with payment" });
+          return;
+        }
+
+        // Check payment status before redirecting
+        const response = await orderService.getPaymentStatus(paymentId, token);
+        
+        if (response.code === 200 && response.data) {
+          // Redirect to the payment URL
+          window.location.href = response.data.checkout_url;
+        } else {
+          setErrors({ 
+            submit: response.message || "Failed to get payment status" 
+          });
+        }
+      } catch (error) {
+        setErrors({ 
+          submit: error.message || "An error occurred while processing payment" 
+        });
+      }
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-12 px-4"
       >
-        Proceed to make payment
-      </Button>
-    </motion.div>
-  );
+        <div className="mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center"
+          >
+            <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </motion.div>
+        </div>
+        <h2 className="text-2xl font-bold mb-4 text-text-primary dark:text-dark-text-primary">
+          Order Confirmed!
+        </h2>
+        <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
+          Thank you for your order. We've sent a confirmation email to {formData.email}
+        </p>
+        <p className="text-text-secondary dark:text-dark-text-secondary text-sm">
+          <strong>Note: </strong> If you do not proceed with payment within 24 hours, your order request will be automatically deleted.
+        </p>
+        <div className="max-w-sm mx-auto bg-background-alt dark:bg-dark-background-alt rounded-lg p-6 mb-8 mt-8">
+          <h3 className="font-semibold mb-4">Order Summary</h3>
+          <p className="text-sm mb-2">Order #: {orderId}</p>
+          <p className="text-sm">Estimated delivery: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
+        </div>
+        {errors.submit && (
+          <p className="text-red-500 text-sm mb-4">{errors.submit}</p>
+        )}
+        <Button
+          variant="primary"
+          onClick={handleProceedToPayment}
+          className="w-full sm:w-auto"
+        >
+          Proceed to make payment
+        </Button>
+      </motion.div>
+    );
+  };
 
   // loading overlay component
   const LoadingOverlay = () => (
@@ -857,13 +898,14 @@ export default function CheckoutForm({ orderData }) {
       const response = await orderService.createOrder(orderData);
 
       if (response.code === 200) {
-        // Clear the order selection from cookies since order is complete
         cookies.clearOrderSelection();
         setIsComplete(true);
+        setOrderId(response.data.ID);
+        setPaymentId(response.data.paymentID);
+        setPaymentUrl(response.data.payment_url);
         
-        // Show success message with order details
         setErrors({
-          success: `Order created successfully! Order ID: ${response.data?.ID}`
+          success: `Order created successfully! Order ID: ${response.data.ID}`
         });
       } else {
         // Handle validation errors
@@ -1175,8 +1217,11 @@ export default function CheckoutForm({ orderData }) {
       if (response.code === 200) {
         cookies.clearOrderSelection();
         setIsComplete(true);
+        setOrderId(response.data.ID);
+        setPaymentId(response.data.paymentID);
+        setPaymentUrl(response.data.payment_url);
         setErrors({
-          success: `Order created successfully! Order ID: ${response.data?.ID}`
+          success: `Order created successfully! Order ID: ${response.data.ID}`
         });
       } else {
         if (response.errors && Array.isArray(response.errors)) {
