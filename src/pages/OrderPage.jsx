@@ -134,14 +134,12 @@ export default function OrderPage() {
     const orderData = {
       productId: product.id,
       quantity: quantity,
-      sizeIndex: sizeIndex,
+      sizeIndex: sizeIndex, // This will be 0 for small, 1 for medium, 2 for large
       size: selectedSize,
       type: product.id,
       typeName: product.name,
       totalPrice: selectedSize.price * quantity
     };
-
-    console.log('Proceeding to checkout with data:', orderData); // Debug log
 
     // Save final selection to cookies before proceeding
     cookies.saveOrderSelection(orderData);

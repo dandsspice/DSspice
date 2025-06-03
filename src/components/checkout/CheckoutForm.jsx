@@ -1852,7 +1852,7 @@ export default function CheckoutForm({ orderData }) {
                       variant="primary"
                       onClick={handleSubmit}
                       className="w-full"
-                      disabled={isLoading || !selectedAddressId || !formData.shippingMethod}
+                      disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Place Order'}
                     </Button>
