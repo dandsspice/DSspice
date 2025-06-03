@@ -378,7 +378,7 @@ export default function CheckoutForm({ orderData }) {
                   {orderDetails.size?.weight || '0g'} × {orderDetails.quantity || 1}
                 </p>
               </div>
-              <p className="font-medium">gbp{(orderDetails.totalPrice || 0).toFixed(2)}</p>
+              <p className="font-medium"> £{(orderDetails.totalPrice || 0).toFixed(2)}</p>
             </div>
             
             <div className="flex justify-between pb-4 border-b border-secondary/10">
@@ -388,12 +388,12 @@ export default function CheckoutForm({ orderData }) {
                   {selectedMethod?.title || 'No shipping method selected'}
                 </p>
               </div>
-              <p>gbp{shippingCost.toFixed(2)}</p>
+              <p> £{shippingCost.toFixed(2)}</p>
             </div>
             
             <div className="flex justify-between text-lg font-bold">
               <p>Total</p>
-              <p>gbp{total.toFixed(2)}</p>
+              <p> £{total.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -505,7 +505,7 @@ export default function CheckoutForm({ orderData }) {
         <Button
           variant="primary"
           onClick={handleProceedToPayment}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto items-center ml-auto mr-auto"
         >
           Proceed to make payment
         </Button>
@@ -820,7 +820,7 @@ export default function CheckoutForm({ orderData }) {
                       {method.description}
                     </span>
                   </div>
-                  <span className="font-medium">gbp{parseFloat(method.price).toFixed(2)}</span>
+                  <span className="font-medium"> £{parseFloat(method.price).toFixed(2)}</span>
                 </div>
               </label>
             ))}
@@ -835,16 +835,6 @@ export default function CheckoutForm({ orderData }) {
         {errors.shippingMethod && (
           <p className="mt-1 text-sm text-red-500">{errors.shippingMethod}</p>
         )}
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button
-          variant="primary"
-          onClick={handleShippingProceed}
-          className="w-full"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Processing...' : 'Proceed'}
-        </Button>
       </div>
     </div>
   );

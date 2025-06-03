@@ -13,7 +13,7 @@ export default defineConfig({
         target: 'https://api.dspice.co.uk',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        rewrite: (path) => path.replace(/^\/api/,'/api')
       }
     }
   }
