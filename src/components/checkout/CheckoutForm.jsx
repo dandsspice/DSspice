@@ -839,48 +839,40 @@ export default function CheckoutForm({ orderData }) {
     </div>
   );
 
-  // Add this function near other validation functions
-  const validateOrderSubmission = () => {
-    const newErrors = {};
-    const orderDetails = location.state;
-
-    if (!orderDetails?.productId) {
-      newErrors.submit = "Product ID is required";
-    }
-    if (!orderDetails?.quantity) {
-      newErrors.submit = "Quantity is required";
-    }
-    if (!orderDetails?.sizeIndex) {
-      newErrors.submit = "Size Index is required";
-    }
-    if (!selectedAddressId) {
-      newErrors.submit = "Shipping Address is required";
-    }
-    if (!formData.shippingMethod) {
-      newErrors.submit = "Shipping Method is required";
-    }
-
-    const token = cookies.getToken();
-    if (!token) {
-      newErrors.submit = "You must be logged in to proceed";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Form submission
   const handleSubmit = async () => {
-    if (!validateOrderSubmission()) {
-      return;
-    }
-
     setIsLoading(true);
-    showLoading();
-
     try {
+      // Get order data from location state
       const orderDetails = location.state;
+      
+      // Validate all required fields
+      if (!orderDetails?.productId) {
+        setErrors({ submit: "Product ID is required" });
+        return;
+      }
+      if (!orderDetails?.quantity) {
+        setErrors({ submit: "Quantity is required" });
+        return;
+      }
+      if (!orderDetails?.sizeIndex) {
+        setErrors({ submit: "Size Index is required" });
+        return;
+      }
+      if (!selectedAddressId) {
+        setErrors({ submit: "Shipping Address is required" });
+        return;
+      }
+      if (!formData.shippingMethod) {
+        setErrors({ submit: "Shipping Method is required" });
+        return;
+      }
+
       const token = cookies.getToken();
+      if (!token) {
+        setErrors({ submit: "You must be logged in to proceed." });
+        return;
+      }
 
       const orderData = {
         productID: orderDetails.productId,
@@ -891,42 +883,35 @@ export default function CheckoutForm({ orderData }) {
         token
       };
 
+      console.log('Submitting order with data:', orderData); // Debug log
+
       const response = await orderService.createOrder(orderData);
 
       if (response.code === 200) {
-        // Clear any saved order selection
         cookies.clearOrderSelection();
-        
-        // Update state with order details
         setIsComplete(true);
         setOrderId(response.data.ID);
         setPaymentId(response.data.paymentID);
         setPaymentUrl(response.data.payment_url);
         
-        // Show success message
         setErrors({
           success: `Order created successfully! Order ID: ${response.data.ID}`
         });
       } else {
-        handleOrderError(response);
+        // Handle validation errors
+        if (response.errors && Array.isArray(response.errors)) {
+          const errorMessages = response.errors.join(', ');
+          setErrors({ submit: errorMessages });
+        } else {
+          setErrors({ submit: response.message || 'Failed to process order' });
+        }
       }
     } catch (error) {
-      handleOrderError(error);
+      setErrors({
+        submit: error.message || 'An error occurred while processing your order.'
+      });
     } finally {
       setIsLoading(false);
-      hideLoading();
-    }
-  };
-
-  // Add this helper function to handle order errors
-  const handleOrderError = (error) => {
-    if (error.errors && Array.isArray(error.errors)) {
-      const errorMessages = error.errors.join(', ');
-      setErrors({ submit: errorMessages });
-    } else {
-      setErrors({ 
-        submit: error.message || 'An error occurred while processing your order'
-      });
     }
   };
 
@@ -1867,7 +1852,7 @@ export default function CheckoutForm({ orderData }) {
                       variant="primary"
                       onClick={handleSubmit}
                       className="w-full"
-                      disabled={isLoading || isEditingPersonalInfo}
+                      disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Place Order'}
                     </Button>
