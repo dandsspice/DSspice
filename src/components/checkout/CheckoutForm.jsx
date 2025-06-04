@@ -841,11 +841,24 @@ export default function CheckoutForm({ orderData }) {
 
   // Form submission
   const handleSubmit = async () => {
+    console.log("Place Order button clicked");
     setIsLoading(true);
+
+    // Use fallback for orderDetails
+    const orderDetails = location.state || cookies.getOrderSelection() || {};
+
+    // Defensive check for missing order data
+    if (
+      !orderDetails?.productId ||
+      !orderDetails?.quantity ||
+      !orderDetails?.sizeIndex
+    ) {
+      setErrors({ submit: "Order information is missing. Please start your order again." });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Get order data from location state
-      const orderDetails = location.state;
-      
       // Validate all required fields
       if (!orderDetails?.productId) {
         setErrors({ submit: "Product ID is required" });
