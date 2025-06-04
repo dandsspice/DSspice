@@ -102,6 +102,7 @@ export default function CheckoutForm({ orderData }) {
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [paymentId, setPaymentId] = useState(null);
+  const [hasSelectedShippingMethod, setHasSelectedShippingMethod] = useState(false);
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -810,7 +811,10 @@ export default function CheckoutForm({ orderData }) {
                   name="shippingMethod"
                   value={method.ID}
                   checked={formData.shippingMethod === method.ID.toString()}
-                  onChange={handleInputChange}
+                  onChange={e => {
+                    handleInputChange(e);
+                    setHasSelectedShippingMethod(true);
+                  }}
                   className="sr-only"
                 />
                 <div className="flex justify-between items-center">
@@ -841,24 +845,11 @@ export default function CheckoutForm({ orderData }) {
 
   // Form submission
   const handleSubmit = async () => {
-    console.log("Place Order button clicked");
     setIsLoading(true);
-
-    // Use fallback for orderDetails
-    const orderDetails = location.state || cookies.getOrderSelection() || {};
-
-    // Defensive check for missing order data
-    if (
-      !orderDetails?.productId ||
-      !orderDetails?.quantity ||
-      !orderDetails?.sizeIndex
-    ) {
-      setErrors({ submit: "Order information is missing. Please start your order again." });
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Get order data from location state
+      const orderDetails = location.state;
+      
       // Validate all required fields
       if (!orderDetails?.productId) {
         setErrors({ submit: "Product ID is required" });
@@ -1861,14 +1852,16 @@ export default function CheckoutForm({ orderData }) {
                       Continue
                     </Button>
                   ) : (
-                    <Button
-                      variant="primary"
-                      onClick={handleSubmit}
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Processing...' : 'Place Order'}
-                    </Button>
+                    hasSelectedShippingMethod && (
+                      <Button
+                        variant="primary"
+                        onClick={handleSubmit}
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Processing...' : 'Place Order'}
+                      </Button>
+                    )
                   )}
                 </div>
               </div>
