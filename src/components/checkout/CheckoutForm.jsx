@@ -103,6 +103,8 @@ export default function CheckoutForm({ orderData }) {
   const [orderId, setOrderId] = useState(null);
   const [paymentId, setPaymentId] = useState(null);
   const [hasSelectedShippingMethod, setHasSelectedShippingMethod] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -503,13 +505,22 @@ export default function CheckoutForm({ orderData }) {
         {errors.submit && (
           <p className="text-red-500 text-sm mb-4">{errors.submit}</p>
         )}
-        <Button
-          variant="primary"
-          onClick={handleProceedToPayment}
-          className="w-full sm:w-auto items-center ml-auto mr-auto"
-        >
-          Proceed to make payment
-        </Button>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+          <Button
+            variant="primary"
+            onClick={handleProceedToPayment}
+            className="w-full sm:w-auto"
+          >
+            Proceed to make payment
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/orders')}
+            className="w-full sm:w-auto"
+          >
+            View Order History
+          </Button>
+        </div>
       </motion.div>
     );
   };
@@ -1469,11 +1480,55 @@ export default function CheckoutForm({ orderData }) {
     );
   };
 
+  const handleForgotPassword = async () => {
+    if (!resetEmail.trim()) {
+      setErrors({ resetEmail: 'Email is required' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await authService.forgotPassword(resetEmail);
+      if (response.code === 200) {
+        setErrors({
+          success: 'Password reset instructions have been sent to your email'
+        });
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setErrors(prev => {
+            const { success, ...rest } = prev;
+            return rest;
+          });
+        }, 5000);
+        // Reset the form
+        setResetEmail('');
+        setIsForgotPassword(false);
+      } else {
+        setErrors({
+          resetEmail: response.message || 'Failed to send reset instructions'
+        });
+      }
+    } catch (error) {
+      setErrors({
+        resetEmail: error.message || 'An error occurred while processing your request'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4">
-      {/* Logout button */}
+      {/* Logout button and Order History */}
       {isAuthenticated && (
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/orders')}
+            className="text-sm"
+          >
+            Order History
+          </Button>
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -1510,7 +1565,7 @@ export default function CheckoutForm({ orderData }) {
                     !isAuthenticated ? (
                       <div className="space-y-6">
                         <h2 className="text-3xl text-center font-bold mb-6">
-                          {authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
+                          {isForgotPassword ? 'Reset Password' : authMode === 'login' ? 'Login to Continue' : 'Create an Account'}
                         </h2>
                         
                         {/* Add the blocked account message component */}
@@ -1518,138 +1573,197 @@ export default function CheckoutForm({ orderData }) {
                           <BlockedAccountMessage message={errors.auth} />
                         )}
                         
-                        {authMode === 'signup' && (
+                        {isForgotPassword ? (
                           <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div>
-                                <label htmlFor="firstName" className={labelClasses}>First Name</label>
-                                <input
-                                  type="text"
-                                  id="firstName"
-                                  name="firstName"
-                                  value={formData.firstName}
-                                  onChange={handleInputChange}
-                                  className={getInputStyles('firstName')}
-                                  required
-                                />
-                                {errors.firstName && (
-                                  <p className={errorClasses}>{errors.firstName}</p>
-                                )}
-                              </div>
-                              <div>
-                                <label htmlFor="lastName" className={labelClasses}>Last Name</label>
-                                <input
-                                  type="text"
-                                  id="lastName"
-                                  name="lastName"
-                                  value={formData.lastName}
-                                  onChange={handleInputChange}
-                                  className={getInputStyles('lastName')}
-                                  required
-                                />
-                                {errors.lastName && (
-                                  <p className={errorClasses}>{errors.lastName}</p>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Phone number field */}
                             <div>
-                              <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                              <label htmlFor="resetEmail" className={labelClasses}>Email</label>
                               <input
-                                type="tel"
-                                id="phone"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                className={getInputStyles('phone')}
-                                placeholder="+2341234567890"
+                                type="email"
+                                id="resetEmail"
+                                value={resetEmail}
+                                onChange={(e) => setResetEmail(e.target.value)}
+                                className={getInputStyles('resetEmail')}
                                 required
                               />
-                              {errors.phone && (
-                                <p className={errorClasses}>{errors.phone}</p>
+                              {errors.resetEmail && (
+                                <p className={errorClasses}>{errors.resetEmail}</p>
                               )}
-                              <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
-                                Type your number after +234
-                              </p>
+                              {errors.success && (
+                                <p className="text-green-500 text-sm mt-2">{errors.success}</p>
+                              )}
+                            </div>
+                            
+                            <div className="flex flex-col space-y-4">
+                              <Button
+                                variant="primary"
+                                onClick={handleForgotPassword}
+                                className="w-full"
+                                disabled={isLoading}
+                              >
+                                {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+                              </Button>
+                              
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsForgotPassword(false);
+                                  setResetEmail('');
+                                  setErrors({});
+                                }}
+                                className="text-sm text-accent hover:underline"
+                              >
+                                Back to Login
+                              </button>
                             </div>
                           </div>
-                        )}
-                        
-                        <div>
-                          <label htmlFor="email" className={labelClasses}>Email</label>
-                          <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className={getInputStyles('email')}
-                            required
-                          />
-                          {errors.email && (
-                            <p className={errorClasses}>{errors.email}</p>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="password" className={labelClasses}>Password</label>
-                          <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className={getInputStyles('password')}
-                            required
-                          />
-                          {errors.password && (
-                            <p className={errorClasses}>{errors.password}</p>
-                          )}
-                        </div>
-                        
-                        {authMode === 'signup' && (
-                          <div>
-                            <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password</label>
-                            <input
-                              type="password"
-                              id="confirmPassword"
-                              name="confirmPassword"
-                              value={formData.confirmPassword}
-                              onChange={handleInputChange}
-                              className={getInputStyles('confirmPassword')}
-                              required
-                            />
-                            {errors.confirmPassword && (
-                              <p className={errorClasses}>{errors.confirmPassword}</p>
+                        ) : (
+                          <>
+                            {authMode === 'signup' && (
+                              <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div>
+                                    <label htmlFor="firstName" className={labelClasses}>First Name</label>
+                                    <input
+                                      type="text"
+                                      id="firstName"
+                                      name="firstName"
+                                      value={formData.firstName}
+                                      onChange={handleInputChange}
+                                      className={getInputStyles('firstName')}
+                                      required
+                                    />
+                                    {errors.firstName && (
+                                      <p className={errorClasses}>{errors.firstName}</p>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <label htmlFor="lastName" className={labelClasses}>Last Name</label>
+                                    <input
+                                      type="text"
+                                      id="lastName"
+                                      name="lastName"
+                                      value={formData.lastName}
+                                      onChange={handleInputChange}
+                                      className={getInputStyles('lastName')}
+                                      required
+                                    />
+                                    {errors.lastName && (
+                                      <p className={errorClasses}>{errors.lastName}</p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Phone number field */}
+                                <div>
+                                  <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                                  <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                    className={getInputStyles('phone')}
+                                    placeholder="+2341234567890"
+                                    required
+                                  />
+                                  {errors.phone && (
+                                    <p className={errorClasses}>{errors.phone}</p>
+                                  )}
+                                  <p className="text-sm text-text-secondary dark:text-dark-text-secondary mt-1">
+                                    Type your number after +234
+                                  </p>
+                                </div>
+                              </div>
                             )}
-                          </div>
+                            
+                            <div>
+                              <label htmlFor="email" className={labelClasses}>Email</label>
+                              <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                className={getInputStyles('email')}
+                                required
+                              />
+                              {errors.email && (
+                                <p className={errorClasses}>{errors.email}</p>
+                              )}
+                            </div>
+                            
+                            <div>
+                              <label htmlFor="password" className={labelClasses}>Password</label>
+                              <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className={getInputStyles('password')}
+                                required
+                              />
+                              {errors.password && (
+                                <p className={errorClasses}>{errors.password}</p>
+                              )}
+                            </div>
+                            
+                            {authMode === 'signup' && (
+                              <div>
+                                <label htmlFor="confirmPassword" className={labelClasses}>Confirm Password</label>
+                                <input
+                                  type="password"
+                                  id="confirmPassword"
+                                  name="confirmPassword"
+                                  value={formData.confirmPassword}
+                                  onChange={handleInputChange}
+                                  className={getInputStyles('confirmPassword')}
+                                  required
+                                />
+                                {errors.confirmPassword && (
+                                  <p className={errorClasses}>{errors.confirmPassword}</p>
+                                )}
+                              </div>
+                            )}
+                            
+                            {errors.auth && (
+                              <p className="text-red-500 text-sm mt-2">{errors.auth}</p>
+                            )}
+                            
+                            <div className="flex flex-col space-y-4">
+                              <Button
+                                variant="primary"
+                                onClick={handleAuth}
+                                className="w-full"
+                                disabled={isLoading}
+                              >
+                                {isLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Create Account'}
+                              </Button>
+                              
+                              <div className="flex flex-col space-y-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                                  className="text-sm text-accent hover:underline"
+                                >
+                                  {authMode === 'login' 
+                                    ? "Don't have an account? Sign up" 
+                                    : 'Already have an account? Login'}
+                                </button>
+                                
+                                {authMode === 'login' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsForgotPassword(true)}
+                                    className="text-sm text-accent hover:underline"
+                                  >
+                                    Forgot your password?
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </>
                         )}
-                        
-                        {errors.auth && (
-                          <p className="text-red-500 text-sm mt-2">{errors.auth}</p>
-                        )}
-                        
-                        <div className="flex flex-col space-y-4">
-                          <Button
-                            variant="primary"
-                            onClick={handleAuth}
-                            className="w-full"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? 'Processing...' : authMode === 'login' ? 'Login' : 'Create Account'}
-                          </Button>
-                          
-                          <button
-                            type="button"
-                            onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                            className="text-sm text-accent hover:underline"
-                          >
-                            {authMode === 'login' 
-                              ? "Don't have an account? Sign up" 
-                              : 'Already have an account? Login'}
-                          </button>
-                        </div>
                       </div>
                     ) : (
                       <div className="space-y-6">

@@ -73,6 +73,58 @@ const orderService = {
       };
     }
   },
+
+  getOrders: async (token) => {
+    try {
+      const response = await api.get('/orders/get', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('Raw API response:', response); // Debug log
+      
+      // Make sure we're returning the data in the correct format
+      return {
+        code: response.data.code,
+        message: response.data.message,
+        data: Array.isArray(response.data.data) ? response.data.data : [],
+        errors: response.data.errors
+      };
+    } catch (error) {
+      console.error('Error in getOrders:', error); // Debug log
+      return {
+        code: error.response?.data?.code || 500,
+        message: error.response?.data?.message || 'Error fetching orders',
+        data: [],
+        errors: error.response?.data?.errors || ['Failed to fetch orders']
+      };
+    }
+  },
+
+  getOrderDetails: async (orderId, token) => {
+    try {
+      const response = await api.get(`/orders/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      return {
+        code: response.data.code,
+        message: response.data.message,
+        data: response.data.data,
+        errors: response.data.errors
+      };
+    } catch (error) {
+      return {
+        code: error.response?.data?.code || 500,
+        message: error.response?.data?.message || 'Error fetching order details',
+        data: null,
+        errors: error.response?.data?.errors || ['Failed to fetch order details']
+      };
+    }
+  },
 };
 
 export default orderService;
