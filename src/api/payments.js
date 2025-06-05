@@ -9,8 +9,7 @@ const paymentsService = {
         }
       });
       
-      // Log the response to verify data structure
-      console.log('Payments Response:', response.data);
+     
       
       return {
         code: response.data.code,
@@ -35,8 +34,7 @@ const paymentsService = {
         }
       });
       
-      // Log the response to verify data structure
-      console.log('Payment Status Response:', response.data);
+
       
       return {
         code: response.data.code,

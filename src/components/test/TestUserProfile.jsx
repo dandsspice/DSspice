@@ -27,7 +27,6 @@ export default function TestUserProfile() {
 
       const response = await authService.getUserProfile();
       setResult(response);
-      console.log('API Response:', response);
     } catch (err) {
       setError(err.message);
       console.error('Error:', err);

@@ -41,7 +41,6 @@ export default function OrderPage() {
             description: productData.description,
             images: productData.images.map(image => {
               const imageUrl = `${productData.image_base_url.replace(/\/$/, '')}/${image.replace(/^\//, '')}`;
-              console.log('Constructed image URL:', imageUrl); // Debug log
               return imageUrl;
             }),
             features: productData.features || [],

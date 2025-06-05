@@ -19,10 +19,8 @@ const authService = {
 
       // Check if login was successful and we have user data
       if (response.data.code === 200 && response.data.data?.token) {
-        console.log('Login response token:', response.data.data.token); // Debug log
         const { token, ...userData } = response.data.data;
         cookies.setAuth(token.token, userData);
-        console.log('Token stored in cookies:', cookies.getToken()); // Debug log
       }
       return response.data;
     } catch (error) {
@@ -87,7 +85,6 @@ const authService = {
   logout: async () => {
     try {
       const token = cookies.getToken();
-      console.log('Token before logout:', token); // Debug line
       
       const response = await api.get('/auth/logout', {
         headers: {
@@ -95,7 +92,6 @@ const authService = {
         }
       });
       
-      console.log('Logout response:', response.data); // Debug line
       
       cookies.clearAuth();
       return response.data;
@@ -114,10 +110,8 @@ const authService = {
   getUserProfile: async () => {
     try {
       const token = cookies.getToken();
-      console.log('Token from cookies:', token);
       
       if (!token) {
-        console.log('No token found in cookies');
         return {
           code: 401,
           message: "No token passed",
@@ -128,7 +122,6 @@ const authService = {
 
       // Ensure token is properly formatted
       const formattedToken = token.trim();
-      console.log('Formatted token:', formattedToken);
 
       const response = await api.get('/user/get', {
         headers: {
@@ -136,7 +129,6 @@ const authService = {
         }
       });
       
-      console.log('API Response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error in getUserProfile:', error);

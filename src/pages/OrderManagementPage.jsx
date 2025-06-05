@@ -39,7 +39,6 @@ export default function OrderManagementPage() {
 
         const start = (currentPage - 1) * ordersPerPage;
         const response = await orderService.getOrders(token, start, ordersPerPage);
-        console.log('API Response:', response);
 
         if (response.code === 200) {
           setOrders(response.data.orders || []);

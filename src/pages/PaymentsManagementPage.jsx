@@ -19,7 +19,7 @@ export default function PaymentsManagementPage() {
   // Update payment statuses to match API response
   const paymentStatuses = [
     { key: 'all', label: 'All Payments' },
-    { key: 'paid', label: 'Paid' },
+    { key: 'succeeded', label: 'Paid' },
     { key: 'unpaid', label: 'Unpaid' },
     { key: 'pending', label: 'Pending' },
     { key: 'failed', label: 'Failed' }
@@ -36,8 +36,7 @@ export default function PaymentsManagementPage() {
         }
 
         const response = await paymentsService.getPayments(token);
-        console.log('Payments data:', response.data); // Debug log
-
+        
         if (response.code === 200) {
           let filteredPayments = response.data.payments;
           
@@ -45,19 +44,14 @@ export default function PaymentsManagementPage() {
           if (filterStatus !== 'all') {
             filteredPayments = filteredPayments.filter(payment => {
               const paymentStatus = payment.status.toLowerCase();
-              switch (filterStatus) {
-                case 'paid':
-                  // Check for both 'paid' and 'completed' statuses
-                  return paymentStatus === 'paid' || paymentStatus === 'completed';
-                case 'unpaid':
-                  return paymentStatus === 'unpaid';
-                case 'pending':
-                  return paymentStatus === 'pending';
-                case 'failed':
-                  return paymentStatus === 'failed';
-                default:
-                  return paymentStatus === filterStatus.toLowerCase();
+             
+              
+              if (filterStatus === 'succeeded') {
+                // Match 'succeeded' status for paid payments
+                return paymentStatus === 'succeeded';
               }
+              
+              return paymentStatus === filterStatus.toLowerCase();
             });
           }
           
@@ -84,8 +78,7 @@ export default function PaymentsManagementPage() {
   // Update status colors to match actual statuses
   const getStatusColor = (status) => {
     const colors = {
-      'paid': 'text-green-500',
-      'completed': 'text-green-500', // Same color for both paid and completed
+      'succeeded': 'text-green-500',
       'unpaid': 'text-red-500',
       'pending': 'text-yellow-500',
       'failed': 'text-red-500'
@@ -188,14 +181,7 @@ export default function PaymentsManagementPage() {
                           >
                             View Details
                           </Button>
-                          {payment.status === 'unpaid' && payment.checkout_url && (
-                            <Button
-                              variant="outline"
-                              onClick={() => window.location.href = payment.checkout_url}
-                            >
-                              Pay Now
-                            </Button>
-                          )}
+                         
                         </div>
                       </div>
                     </div>
@@ -270,6 +256,8 @@ export default function PaymentsManagementPage() {
               </div>
             </motion.div>
           )}
+
+      
         </motion.div>
       </div>
     </div>

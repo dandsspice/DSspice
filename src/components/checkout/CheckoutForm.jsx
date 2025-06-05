@@ -898,7 +898,6 @@ export default function CheckoutForm({ orderData }) {
         token
       };
 
-      console.log('Submitting order with data:', orderData); // Debug log
 
       const response = await orderService.createOrder(orderData);
 
@@ -1182,10 +1181,7 @@ export default function CheckoutForm({ orderData }) {
   };
 
   const handleShippingProceed = async () => {
-    console.log('orderDetails:', orderDetails);
-    console.log('selectedAddressId:', selectedAddressId);
-    console.log('formData.shippingMethod:', formData.shippingMethod);
-    console.log('token:', cookies.getToken());
+  
     if (
       !orderDetails.productId ||
       !orderDetails.quantity ||
@@ -1212,7 +1208,7 @@ export default function CheckoutForm({ orderData }) {
       token
     };
 
-    console.log('Submitting order with data:', orderData); // Debug log
+   
 
     showLoading();
 
