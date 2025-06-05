@@ -1524,6 +1524,13 @@ export default function CheckoutForm({ orderData }) {
         <div className="flex justify-end mb-6 space-x-4">
           <Button
             variant="outline"
+            onClick={() => navigate('/payments')}
+            className="text-sm"
+          >
+            Payment History
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigate('/orders')}
             className="text-sm"
           >

@@ -24,6 +24,7 @@ export default function OrderPage() {
     sizes: []
   });
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Fetch product data on mount
   useEffect(() => {
@@ -33,7 +34,6 @@ export default function OrderPage() {
         
         if (response.data) {
           const productData = response.data;
-          console.log('Raw product data:', productData); // Debug log
 
           const formattedProduct = {
             id: productData.ID.toString(),
@@ -189,6 +189,12 @@ export default function OrderPage() {
     const shippingCost = getShippingCost(formData.shippingMethod);
     return (basePrice + shippingCost).toFixed(2);
   };
+
+  // Add this useEffect to check authentication status
+  useEffect(() => {
+    const token = cookies.getToken();
+    setIsAuthenticated(!!token);
+  }, []);
 
   if (isLoading) {
     return (
@@ -441,7 +447,7 @@ export default function OrderPage() {
           )}
           
           {/* Proceed Button */}
-          <motion.div variants={fadeInUp} className="flex justify-center pt-6">
+          <motion.div variants={fadeInUp} className="flex justify-center gap-4 pt-6">
             <Button
               variant="primary"
               size="large"
@@ -452,6 +458,16 @@ export default function OrderPage() {
             >
               Proceed to Checkout
             </Button>
+            {isAuthenticated && (
+              <Button
+                variant="outline"
+                size="large"
+                onClick={() => navigate('/payments')}
+                className="min-w-[200px]"
+              >
+                View Payment History
+              </Button>
+            )}
           </motion.div>
         </motion.div>
           </>

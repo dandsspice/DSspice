@@ -16,6 +16,9 @@ export default function OrderManagementPage() {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
   const [addressString, setAddressString] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [ordersPerPage] = useState(10); // Number of orders per page
 
   const shippingMethodMap = {
     "1": "Royal Mail Tracked 48",
@@ -34,11 +37,15 @@ export default function OrderManagementPage() {
           return;
         }
 
-        const response = await orderService.getOrders(token);
-        console.log('API Response:', response); // Debug log
+        const start = (currentPage - 1) * ordersPerPage;
+        const response = await orderService.getOrders(token, start, ordersPerPage);
+        console.log('API Response:', response);
 
         if (response.code === 200) {
-          setOrders(response.data); // Now always an array
+          setOrders(response.data.orders || []);
+          // Calculate total pages based on total count
+          const total = response.data.total || 0;
+          setTotalPages(Math.ceil(total / ordersPerPage));
         } else {
           setError(response.message || 'Failed to fetch orders');
         }
@@ -51,7 +58,7 @@ export default function OrderManagementPage() {
     };
 
     fetchOrders();
-  }, [navigate]);
+  }, [currentPage, navigate]);
 
   useEffect(() => {
     if (viewMode === "detail" && selectedOrder) {
@@ -71,28 +78,6 @@ export default function OrderManagementPage() {
     setViewMode('detail');
   };
 
-  const handleReorder = (order) => {
-    // Create order data from the previous order
-    const orderData = {
-      productId: order.product_id,
-      quantity: order.quantity,
-      sizeIndex: order.size_index,
-      size: {
-        id: order.size_id,
-        name: order.size_name,
-        weight: order.size_weight,
-        price: order.size_price
-      },
-      type: order.product_type,
-      typeName: order.product_name,
-      totalPrice: order.total_price
-    };
-
-    // Save to cookies and navigate to checkout
-    cookies.saveOrderSelection(orderData);
-    navigate('/checkout', { state: orderData });
-  };
-
   const getStatusColor = (status) => {
     const colors = {
       'pending': 'text-yellow-500',
@@ -103,6 +88,45 @@ export default function OrderManagementPage() {
     };
     return colors[status.toLowerCase()] || 'text-gray-500';
   };
+
+  const PaginationControls = () => (
+    <div className="flex justify-center items-center space-x-4 mt-6">
+      <Button
+        variant="outline"
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1 || isLoading}
+        className="px-4 py-2"
+      >
+        Previous
+      </Button>
+      
+      <div className="flex items-center space-x-2">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              currentPage === page
+                ? 'bg-accent text-white'
+                : 'bg-background-alt hover:bg-accent/10'
+            }`}
+            disabled={isLoading}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <Button
+        variant="outline"
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages || isLoading}
+        className="px-4 py-2"
+      >
+        Next
+      </Button>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -172,45 +196,41 @@ export default function OrderManagementPage() {
                   </Button>
                 </div>
               ) : (
-                orders.map((order) => (
-                  <div
-                    key={order.ID}
-                    className="bg-background-alt dark:bg-dark-background-alt rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-semibold">
-                          Order #{order.ID}
-                        </h3>
-                        <p className="text-text-secondary dark:text-dark-text-secondary">
-                          {order.date && order.date !== "0000-00-00 00:00:00"
-                            ? new Date(order.date.replace(' ', 'T')).toLocaleDateString()
-                            : "N/A"}
-                        </p>
-                        <p className={`font-medium ${getStatusColor(order.status)}`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </p>
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => handleViewOrderDetails(order)}
-                        >
-                          View Details
-                        </Button>
-                        {order.status !== 'cancelled' && (
+                <>
+                  {orders.map((order) => (
+                    <div
+                      key={order.ID}
+                      className="bg-background-alt dark:bg-dark-background-alt rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="space-y-2">
+                          <h3 className="text-lg font-semibold">
+                            Order #{order.ID}
+                          </h3>
+                          <p className="text-text-secondary dark:text-dark-text-secondary">
+                            {order.date && order.date !== "0000-00-00 00:00:00"
+                              ? new Date(order.date.replace(' ', 'T')).toLocaleDateString()
+                              : "N/A"}
+                          </p>
+                          <p className={`font-medium ${getStatusColor(order.status)}`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </p>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row gap-4">
                           <Button
                             variant="primary"
-                            onClick={() => handleReorder(order)}
+                            onClick={() => handleViewOrderDetails(order)}
                           >
-                            Reorder
+                            View Details
                           </Button>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                  
+                  {orders.length > 0 && <PaginationControls />}
+                </>
               )}
             </motion.div>
           ) : (
@@ -281,18 +301,6 @@ export default function OrderManagementPage() {
                         <span>£{selectedOrder.amount}</span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end gap-4">
-                    {selectedOrder.status !== 'cancelled' && (
-                      <Button
-                        variant="primary"
-                        onClick={() => handleReorder(selectedOrder)}
-                      >
-                        Reorder
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>

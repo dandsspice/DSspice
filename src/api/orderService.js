@@ -74,30 +74,30 @@ const orderService = {
     }
   },
 
-  getOrders: async (token) => {
+  getOrders: async (token, start = 0, limit = 10) => {
     try {
-      const response = await api.get('/orders/get', {
+      const response = await api.get(`/orders/get?start=${start}&limit=${limit}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-
-      // Always return an array
-      const orders = Array.isArray(response.data.data?.orders)
-        ? response.data.data.orders
-        : [];
-
+      
       return {
         code: response.data.code,
         message: response.data.message,
-        data: orders,
+        data: {
+          orders: response.data.data?.orders || [],
+          total: response.data.data?.total || 0,
+          next: response.data.data?.next
+        },
         errors: response.data.errors
       };
     } catch (error) {
+      console.error('Error in getOrders:', error);
       return {
         code: error.response?.data?.code || 500,
         message: error.response?.data?.message || 'Error fetching orders',
-        data: [],
+        data: { orders: [], total: 0 },
         errors: error.response?.data?.errors || ['Failed to fetch orders']
       };
     }
