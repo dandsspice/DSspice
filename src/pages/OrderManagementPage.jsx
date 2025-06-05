@@ -6,6 +6,7 @@ import BackButton from '../components/common/BackButton';
 import { fadeInUp, staggerContainer } from '../animations/variants';
 import orderService from '../api/orderService';
 import { cookies } from '../utils/cookies';
+import checkoutService from '../api/checkoutService';
 
 export default function OrderManagementPage() {
   const navigate = useNavigate();
@@ -14,6 +15,14 @@ export default function OrderManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
+  const [addressString, setAddressString] = useState("");
+
+  const shippingMethodMap = {
+    "1": "Royal Mail Tracked 48",
+    "2": "Royal Mail Tracked 24",
+    "3": "Royal Mail Signed 1st Class",
+    "4": "Royal Mail Tracked 24 Signed"
+  };
 
   // Fetch orders on mount
   useEffect(() => {
@@ -26,12 +35,15 @@ export default function OrderManagementPage() {
         }
 
         const response = await orderService.getOrders(token);
+        console.log('API Response:', response); // Debug log
+
         if (response.code === 200) {
-          setOrders(response.data || []);
+          setOrders(response.data); // Now always an array
         } else {
           setError(response.message || 'Failed to fetch orders');
         }
       } catch (error) {
+        console.error('Error fetching orders:', error);
         setError(error.message || 'An error occurred while fetching orders');
       } finally {
         setIsLoading(false);
@@ -40,6 +52,19 @@ export default function OrderManagementPage() {
 
     fetchOrders();
   }, [navigate]);
+
+  useEffect(() => {
+    if (viewMode === "detail" && selectedOrder) {
+      checkoutService.getShippingAddressById(selectedOrder.shipping_address)
+        .then(response => {
+          if (response.code === 200 && response.data) {
+            setAddressString(response.data.address);
+          } else {
+            setAddressString(selectedOrder.shipping_address);
+          }
+        });
+    }
+  }, [viewMode, selectedOrder]);
 
   const handleViewOrderDetails = (order) => {
     setSelectedOrder(order);
@@ -129,7 +154,11 @@ export default function OrderManagementPage() {
 
           {viewMode === 'list' ? (
             <motion.div variants={fadeInUp} className="space-y-4">
-              {!orders || orders.length === 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                </div>
+              ) : !Array.isArray(orders) || orders.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-text-secondary dark:text-dark-text-secondary">
                     You haven't placed any orders yet.
@@ -137,7 +166,7 @@ export default function OrderManagementPage() {
                   <Button
                     variant="primary"
                     onClick={() => navigate('/order')}
-                    className="mt-6 mr-auto ml-auto"
+                    className="mt-4"
                   >
                     Place Your First Order
                   </Button>
@@ -154,7 +183,9 @@ export default function OrderManagementPage() {
                           Order #{order.ID}
                         </h3>
                         <p className="text-text-secondary dark:text-dark-text-secondary">
-                          {new Date(order.created_at).toLocaleDateString()}
+                          {order.date && order.date !== "0000-00-00 00:00:00"
+                            ? new Date(order.date.replace(' ', 'T')).toLocaleDateString()
+                            : "N/A"}
                         </p>
                         <p className={`font-medium ${getStatusColor(order.status)}`}>
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -189,6 +220,11 @@ export default function OrderManagementPage() {
                   <h2 className="text-2xl font-semibold">
                     Order #{selectedOrder.ID}
                   </h2>
+                  <p className="text-text-secondary">
+                    Order Date: {selectedOrder.date && selectedOrder.date !== "0000-00-00 00:00:00"
+                      ? new Date(selectedOrder.date.replace(' ', 'T')).toLocaleDateString()
+                      : "N/A"}
+                  </p>
                   <Button
                     variant="outline"
                     onClick={() => setViewMode('list')}
@@ -211,8 +247,8 @@ export default function OrderManagementPage() {
                     <div>
                       <h3 className="font-semibold mb-2">Product Details</h3>
                       <div className="space-y-2">
-                        <p><span className="text-text-secondary">Product:</span> {selectedOrder.product_name}</p>
-                        <p><span className="text-text-secondary">Size:</span> {selectedOrder.size_weight}</p>
+                        <p><span className="text-text-secondary">Product:</span> {selectedOrder.product_name || selectedOrder.productID}</p>
+                        <p><span className="text-text-secondary">Size:</span> {selectedOrder.size} ({selectedOrder.weight})</p>
                         <p><span className="text-text-secondary">Quantity:</span> {selectedOrder.quantity}</p>
                         <p><span className="text-text-secondary">Price per unit:</span> £{selectedOrder.unit_price}</p>
                       </div>
@@ -221,9 +257,9 @@ export default function OrderManagementPage() {
                     <div>
                       <h3 className="font-semibold mb-2">Shipping Details</h3>
                       <div className="space-y-2">
-                        <p><span className="text-text-secondary">Address:</span> {selectedOrder.shipping_address}</p>
-                        <p><span className="text-text-secondary">Method:</span> {selectedOrder.shipping_method}</p>
-                        <p><span className="text-text-secondary">Shipping Cost:</span> £{selectedOrder.shipping_cost}</p>
+                        <p><span className="text-text-secondary">Address:</span> {addressString}</p>
+                        <p><span className="text-text-secondary">Method:</span> {shippingMethodMap[selectedOrder.shipping_method] || selectedOrder.shipping_method}</p>
+                        <p><span className="text-text-secondary">Shipping Cost:</span> £{selectedOrder.shipping_cost || "0.00"}</p>
                       </div>
                     </div>
                   </div>
@@ -234,15 +270,15 @@ export default function OrderManagementPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span>Subtotal:</span>
-                        <span>£{selectedOrder.subtotal}</span>
+                        <span>£{(Number(selectedOrder.unit_price) * Number(selectedOrder.quantity)).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Shipping:</span>
-                        <span>£{selectedOrder.shipping_cost}</span>
+                        <span>£{selectedOrder.shipping_cost || "0.00"}</span>
                       </div>
                       <div className="flex justify-between font-bold pt-2 border-t">
                         <span>Total:</span>
-                        <span>£{selectedOrder.total_price}</span>
+                        <span>£{selectedOrder.amount}</span>
                       </div>
                     </div>
                   </div>

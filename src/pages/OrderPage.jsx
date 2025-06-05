@@ -184,6 +184,12 @@ export default function OrderPage() {
     </div>
   );
 
+  const getTotalWithShipping = () => {
+    const basePrice = selectedSize && typeof selectedSize.price === "number" ? selectedSize.price : 0;
+    const shippingCost = getShippingCost(formData.shippingMethod);
+    return (basePrice + shippingCost).toFixed(2);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -374,7 +380,7 @@ export default function OrderPage() {
                       </div>
                     </div>
                     <p className="text-accent font-bold">
-                      £{size.price.toFixed(2)}
+                      £{size && typeof size.price === "number" ? size.price.toFixed(2) : "0.00"}
                     </p>
                   </div>
                 </button>
@@ -416,7 +422,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per unit:</span>
-                    <span> £{selectedSize.price.toFixed(2)}</span>
+                    <span> £{selectedSize && typeof selectedSize.price === "number" ? selectedSize.price.toFixed(2) : "0.00"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Quantity:</span>
@@ -424,7 +430,7 @@ export default function OrderPage() {
                   </div>
                   <div className="flex justify-between font-bold pt-2 border-t border-accent/20">
                     <span>Subtotal:</span>
-                    <span> £{(selectedSize.price * quantity).toFixed(2)}</span>
+                    <span> £{selectedSize && typeof selectedSize.price === "number" ? (selectedSize.price * quantity).toFixed(2) : "0.00"}</span>
                   </div>
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-2">
                     *Shipping costs will be calculated at checkout

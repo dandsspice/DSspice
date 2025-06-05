@@ -81,18 +81,19 @@ const orderService = {
           'Authorization': `Bearer ${token}`
         }
       });
-      
-      console.log('Raw API response:', response); // Debug log
-      
-      // Make sure we're returning the data in the correct format
+
+      // Always return an array
+      const orders = Array.isArray(response.data.data?.orders)
+        ? response.data.data.orders
+        : [];
+
       return {
         code: response.data.code,
         message: response.data.message,
-        data: Array.isArray(response.data.data) ? response.data.data : [],
+        data: orders,
         errors: response.data.errors
       };
     } catch (error) {
-      console.error('Error in getOrders:', error); // Debug log
       return {
         code: error.response?.data?.code || 500,
         message: error.response?.data?.message || 'Error fetching orders',
