@@ -1392,7 +1392,7 @@ export default function CheckoutForm({ orderData }) {
 
     return (
       <div className="mt-8 pt-8 border-t border-secondary/20">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3 sm:gap-4">
           <h3 className="text-lg font-semibold">Change Password</h3>
           <Button
             variant="outline"
@@ -1517,25 +1517,25 @@ export default function CheckoutForm({ orderData }) {
     <div className="max-w-6xl mx-auto px-4">
       {/* Logout button and Order History */}
       {isAuthenticated && (
-        <div className="flex justify-end mb-6 space-x-4">
+        <div className="flex flex-col sm:flex-row justify-end mb-6 gap-3 sm:gap-4">
           <Button
             variant="outline"
             onClick={() => navigate('/payments')}
-            className="text-sm"
+            className="w-full sm:w-auto text-sm"
           >
             Payment History
           </Button>
           <Button
             variant="outline"
             onClick={() => navigate('/orders')}
-            className="text-sm"
+            className="w-full sm:w-auto text-sm"
           >
             Order History
           </Button>
           <Button
             variant="outline"
             onClick={handleLogout}
-            className="text-sm"
+            className="w-full sm:w-auto text-sm"
           >
             Logout
           </Button>
@@ -1770,7 +1770,7 @@ export default function CheckoutForm({ orderData }) {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-4">
                           <h2 className="text-xl font-semibold">Personal Information</h2>
                           <Button
                             variant="outline"
@@ -1781,7 +1781,7 @@ export default function CheckoutForm({ orderData }) {
                                 setIsEditingPersonalInfo(true);
                               }
                             }}
-                            className="text-sm"
+                            className="text-sm px-10 py-2"
                           >
                             {isEditingPersonalInfo ? 'Save Changes' : 'Edit'}
                           </Button>

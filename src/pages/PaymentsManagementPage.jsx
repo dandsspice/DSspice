@@ -243,7 +243,7 @@ export default function PaymentsManagementPage() {
                   </div>
 
                   {selectedPayment.status === 'unpaid' && selectedPayment.checkout_url && (
-                    <div className="mt-6 flex justify-center">
+                    <div className="mt-6 flex flex-col sm:flex-row justify-center sm:justify-start gap-3 sm:gap-4">
                       <Button
                         variant="primary"
                         onClick={() => window.location.href = selectedPayment.checkout_url}

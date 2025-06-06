@@ -235,7 +235,7 @@ export default function OrderManagementPage() {
           ) : (
             <motion.div variants={fadeInUp} className="space-y-6">
               <div className="bg-background-alt dark:bg-dark-background-alt rounded-xl p-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 sm:gap-4">
                   <h2 className="text-2xl font-semibold">
                     Order #{selectedOrder.ID}
                   </h2>
