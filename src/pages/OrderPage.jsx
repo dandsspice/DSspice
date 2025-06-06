@@ -446,14 +446,14 @@ export default function OrderPage() {
           )}
           
           {/* Proceed Button */}
-          <motion.div variants={fadeInUp} className="flex justify-center gap-4 pt-6">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
             <Button
               variant="primary"
               size="large"
               onClick={handleProceedToCheckout}
               disabled={!selectedSize || isLoading}
               isLoading={isLoading}
-              className="min-w-[200px]"
+              className="min-w-[200px] w-full sm:w-auto"
             >
               Proceed to Checkout
             </Button>
@@ -462,7 +462,7 @@ export default function OrderPage() {
                 variant="outline"
                 size="large"
                 onClick={() => navigate('/payments')}
-                className="min-w-[200px]"
+                className="min-w-[200px] w-full sm:w-auto"
               >
                 View Payment History
               </Button>
