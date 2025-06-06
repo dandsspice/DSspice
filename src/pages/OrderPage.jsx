@@ -127,13 +127,13 @@ export default function OrderPage() {
     
     setIsLoading(true);
     
-    // Get size index based on the selected size
-    const sizeIndex = product.sizes.findIndex(s => s.id === selectedSize.id);
+    // Get size index based on the selected size and add 1 to make it 1-based
+    const sizeIndex = product.sizes.findIndex(s => s.id === selectedSize.id) + 1;
     
     const orderData = {
       productId: product.id,
       quantity: quantity,
-      sizeIndex: sizeIndex, // This will be 0 for small, 1 for medium, 2 for large
+      sizeIndex: sizeIndex, // Now this will be 1 for small, 2 for medium, 3 for large
       size: selectedSize,
       type: product.id,
       typeName: product.name,
@@ -457,16 +457,7 @@ export default function OrderPage() {
             >
               Proceed to Checkout
             </Button>
-            {isAuthenticated && (
-              <Button
-                variant="outline"
-                size="large"
-                onClick={() => navigate('/payments')}
-                className="min-w-[200px] w-full sm:w-auto"
-              >
-                View Payment History
-              </Button>
-            )}
+            
           </motion.div>
         </motion.div>
           </>

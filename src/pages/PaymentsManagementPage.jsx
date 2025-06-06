@@ -6,6 +6,8 @@ import BackButton from '../components/common/BackButton';
 import { fadeInUp, staggerContainer } from '../animations/variants';
 import paymentsService from '../api/payments';
 import { cookies } from '../utils/cookies';
+import { Menu } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 export default function PaymentsManagementPage() {
   const navigate = useNavigate();
@@ -99,33 +101,46 @@ export default function PaymentsManagementPage() {
           <h1 className="text-3xl font-bold mt-4">Payment History</h1>
         </div>
 
-        {/* Enhanced Filter Controls */}
+        {/* Replace the filter buttons with a dropdown */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">Filter by Status</h2>
-          <div className="flex flex-wrap gap-3">
-            {paymentStatuses.map(status => (
-              <Button
-                key={status.key}
-                variant={filterStatus === status.key ? 'primary' : 'outline'}
-                onClick={() => setFilterStatus(status.key)}
-                className={`px-4 py-2 ${
-                  filterStatus === status.key 
-                    ? 'bg-accent text-white' 
-                    : 'hover:bg-accent/10'
-                }`}
-              >
-                {status.label}
-                {payments.length > 0 && (
-                  <span className="ml-2 text-sm">
-                    ({status.key === 'all' 
-                      ? payments.length 
-                      : payments.filter(p => p.status.toLowerCase() === status.key).length
-                    })
-                  </span>
-                )}
-              </Button>
-            ))}
-          </div>
+          <Menu as="div" className="relative inline-block text-left">
+            <Menu.Button className="inline-flex justify-center items-center px-4 py-2 border border-secondary/20 rounded-lg bg-background hover:bg-secondary/10 focus:outline-none focus:ring-2 focus:ring-accent/50">
+              <span className="mr-2">
+                {paymentStatuses.find(status => status.key === filterStatus)?.label || 'All Payments'}
+              </span>
+              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+            </Menu.Button>
+
+            <Menu.Items className="absolute left-0 mt-2 w-56 rounded-lg bg-background shadow-lg ring-1 ring-primary ring-opacity-5 focus:outline-none z-10">
+              <div className="py-1">
+                {paymentStatuses.map(status => (
+                  <Menu.Item key={status.key}>
+                    {({ active }) => (
+                      <button
+                        onClick={() => setFilterStatus(status.key)}
+                        className={`${
+                          active ? 'bg-secondary/10' : ''
+                        } ${
+                          filterStatus === status.key ? 'bg-accent/10 text-accent' : 'text-text-primary'
+                        } flex justify-between items-center w-full px-4 py-2 text-sm`}
+                      >
+                        <span>{status.label}</span>
+                        {payments.length > 0 && (
+                          <span className="text-text-secondary">
+                            ({status.key === 'all' 
+                              ? payments.length 
+                              : payments.filter(p => p.status.toLowerCase() === status.key).length
+                            })
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </Menu.Item>
+                ))}
+              </div>
+            </Menu.Items>
+          </Menu>
         </div>
 
         <motion.div

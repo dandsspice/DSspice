@@ -650,7 +650,7 @@ export default function CheckoutForm({ orderData }) {
                       onClick={(e) => handleEditClick(e, address.ID)}
                       className="text-sm text-accent hover:underline"
                     >
-                      Edit
+                      Edit 
                     </button>
                     <button
                       onClick={(e) => {
@@ -1464,7 +1464,7 @@ export default function CheckoutForm({ orderData }) {
               <Button
                 variant="primary"
                 onClick={handleChangePassword}
-                className="w-32"
+                className="w-full"
                 disabled={isChangingPassword}
               >
                 {isChangingPassword ? 'Changing...' : 'Change Password'}
@@ -1515,32 +1515,7 @@ export default function CheckoutForm({ orderData }) {
 
   return (
     <div className="max-w-6xl mx-auto px-4">
-      {/* Logout button and Order History */}
-      {isAuthenticated && (
-        <div className="flex flex-col sm:flex-row justify-end mb-6 gap-3 sm:gap-4">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/payments')}
-            className="w-full sm:w-auto text-sm"
-          >
-            Payment History
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/orders')}
-            className="w-full sm:w-auto text-sm"
-          >
-            Order History
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="w-full sm:w-auto text-sm"
-          >
-            Logout
-          </Button>
-        </div>
-      )}
+      
 
       <AnimatePresence>
         {isLoading && <LoadingOverlay />}
@@ -1783,7 +1758,7 @@ export default function CheckoutForm({ orderData }) {
                             }}
                             className="text-sm px-10 py-2"
                           >
-                            {isEditingPersonalInfo ? 'Save Changes' : 'Edit'}
+                            {isEditingPersonalInfo ? 'Save Changes' : 'Edit Details'}
                           </Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

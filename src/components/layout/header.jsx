@@ -1,15 +1,49 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Dialog } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { Dialog, Popover } from '@headlessui/react';
 import { useTheme } from '../../context/ThemeContext';
+import authService from '../../api/authService';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { darkMode } = useTheme();
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await authService.getUserProfile();
+      if (response.code === 200) {
+        setUserProfile(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const isAuth = authService.isAuthenticated();
+      setIsAuthenticated(isAuth);
+      
+      if (isAuth) {
+        fetchUserProfile();
+      } else {
+        setUserProfile(null);
+      }
+    };
+
+    checkAuth();
+
+    const interval = setInterval(checkAuth, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavigation = useCallback((sectionId) => {
     if (location.pathname !== '/') {
@@ -24,6 +58,13 @@ export default function Header() {
     }
     setMobileMenuOpen(false);
   }, [location.pathname, navigate]);
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setProfileOpen(false);
+    navigate('/');
+  };
 
   const navigation = [
     { name: 'Home', to: '/' },
@@ -86,6 +127,73 @@ export default function Header() {
               >
                 Order Now
               </Link>
+
+              {/* User Profile Button - Only show when authenticated */}
+              {isAuthenticated && (
+                <Popover className="relative">
+                  <Popover.Button
+                    className="p-2 rounded-full hover:bg-secondary/10 transition-colors duration-200"
+                    onClick={() => setProfileOpen(!profileOpen)}
+                  >
+                    <UserCircleIcon className="h-6 w-6 text-text-primary" />
+                  </Popover.Button>
+
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <Popover.Panel
+                        static
+                        className="absolute right-0 mt-8 w-72 rounded-lg bg-background shadow-lg  focus:outline-none"
+                      >
+                        <div className="p-4">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className="h-12 w-12 rounded-full bg-secondary/20 flex items-center justify-center">
+                              <UserCircleIcon className="h-8 w-8 text-text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-medium text-text-primary">
+                                {userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : 'Loading...'}
+                              </h3>
+                              <p className="text-xs text-text-secondary">
+                                {userProfile?.email || 'Loading...'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="border-t border-secondary/10 pt-4">
+                            <Link
+                              to="/payments"
+                              className="block px-4 py-2 text-sm text-text-primary hover:bg-secondary/10 rounded-md"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              Payment History
+                            </Link>
+                            <Link
+                              to="/orders"
+                              className="block px-4 py-2 text-sm text-text-primary hover:bg-secondary/10 rounded-md"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              My Orders
+                            </Link>
+                            <Link
+                              to="/checkout"
+                              state={{ step: 1, isEditing: true }}
+                              className="block px-4 py-2 text-sm text-text-primary hover:bg-secondary/10 rounded-md"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              Edit Details
+                            </Link>
+                            <button
+                              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-secondary/10 rounded-md"
+                              onClick={handleLogout}
+                            >
+                              Logout
+                            </button>
+                          </div>
+                        </div>
+                      </Popover.Panel>
+                    )}
+                  </AnimatePresence>
+                </Popover>
+              )}
 
               {/* Mobile Menu Button */}
               <button
