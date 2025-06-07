@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Dialog, Popover } from '@headlessui/react';
 import { useTheme } from '../../context/ThemeContext';
 import authService from '../../api/authService';
@@ -132,23 +132,30 @@ export default function Header() {
               {isAuthenticated && (
                 <Popover className="relative">
                   <Popover.Button
-                    className="p-2 rounded-full hover:bg-secondary/10 transition-colors duration-200"
+                    className="flex items-center border border-secondary/40 rounded-full px-3 py-1.5 bg-white hover:shadow transition-all focus:outline-none"
                     onClick={() => setProfileOpen(!profileOpen)}
                   >
                     <UserCircleIcon className="h-6 w-6 text-text-primary" />
+                    <span className="ml-2 font-medium text-text-primary">
+                      {userProfile
+                        ? userProfile.first_name.length > 6
+                          ? userProfile.first_name.slice(0, 6) + '…'
+                          : userProfile.first_name
+                        : 'User'}
+                    </span>
+                    <ChevronDownIcon className="ml-1 h-5 w-5 text-secondary" />
                   </Popover.Button>
 
                   <AnimatePresence>
                     {profileOpen && (
                       <Popover.Panel
                         static
-                        className="absolute right-0 mt-8 w-72 rounded-lg bg-background shadow-lg  focus:outline-none"
+                        className="absolute right-0 mt-2 w-72 rounded-lg bg-background shadow-lg focus:outline-none"
                       >
                         <div className="p-4">
                           <div className="flex items-center space-x-3 mb-4">
-                            <div className="h-12 w-12 rounded-full bg-secondary/20 flex items-center justify-center">
-                              <UserCircleIcon className="h-8 w-8 text-text-primary" />
-                            </div>
+                          <UserCircleIcon className="h-6 w-6 text-text-primary" />
+
                             <div>
                               <h3 className="text-sm font-medium text-text-primary">
                                 {userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : 'Loading...'}
