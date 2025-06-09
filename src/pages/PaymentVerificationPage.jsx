@@ -39,7 +39,11 @@ export default function PaymentVerificationPage() {
         if (response.code === 200) {
           // Set status based on payment status from API
           const paymentStatus = response.data.status.toLowerCase();
-          setStatus(paymentStatus === 'paid' ? 'success' : paymentStatus);
+          setStatus(
+            paymentStatus === 'paid' || paymentStatus === 'succeeded'
+              ? 'success'
+              : paymentStatus
+          );
           setMessage(response.message || 'Payment status verified');
           setPaymentDetails(response.data);
         } else {
@@ -143,18 +147,20 @@ export default function PaymentVerificationPage() {
                 </div>
               )}
               
-              <div className="mt-8 space-x-4">
+              <div className="mt-8 space-x-4 flex flex-col md:flex-row justify-between gap-4">
                 {status === 'success' && (
                   <>
                     <Button
                       variant="primary"
                       onClick={() => navigate('/orders')}
+                      className="w-full md:w-auto"  
                     >
                       View Orders
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => navigate('/payments')}
+                      className="w-full md:w-auto"  
                     >
                       Payment History
                     </Button>
