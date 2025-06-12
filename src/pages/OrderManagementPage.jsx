@@ -90,40 +90,44 @@ export default function OrderManagementPage() {
 
   const PaginationControls = () => (
     <div className="flex justify-center items-center space-x-4 mt-6">
-      <Button
-        variant="outline"
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1 || isLoading}
-        className="px-4 py-2"
-      >
-        Previous
-      </Button>
-      
-      <div className="flex items-center space-x-2">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              currentPage === page
-                ? 'bg-accent text-white'
-                : 'bg-background-alt hover:bg-accent/10'
-            }`}
-            disabled={isLoading}
+      {totalPages > 1 && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1 || isLoading}
+            className="px-4 py-2"
           >
-            {page}
-          </button>
-        ))}
-      </div>
+            Previous
+          </Button>
+          
+          <div className="flex items-center space-x-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  currentPage === page
+                    ? 'bg-accent text-white'
+                    : 'bg-background-alt hover:bg-accent/10'
+                }`}
+                disabled={isLoading}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
 
-      <Button
-        variant="outline"
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages || isLoading}
-        className="px-4 py-2"
-      >
-        Next
-      </Button>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || isLoading}
+            className="px-4 py-2"
+          >
+            Next
+          </Button>
+        </>
+      )}
     </div>
   );
 
