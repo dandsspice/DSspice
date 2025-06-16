@@ -492,7 +492,7 @@ export default function CheckoutForm({ orderData }) {
           Order Confirmed!
         </h2>
         <p className="text-text-secondary dark:text-dark-text-secondary mb-8">
-          Thank you for your order. We've sent a confirmation email to {formData.email}
+          Proceed to make payment to complete your order.
         </p>
         <p className="text-text-secondary dark:text-dark-text-secondary text-sm">
           <strong>Note: </strong> If you do not proceed with payment within 24 hours, your order request will be automatically deleted.
