@@ -11,7 +11,7 @@ export const landingPageData = {
   about: {
     title: "About D&Sspice",
     description: "For generations, African kitchens have relied on locust beans to bring warmth, richness, and authenticity to their meals. At D&Sspice, we are proud to continue this legacy by providing you with the best quality locust beans, sourced with care and delivered with love.",
-    mission: "Cooking isn't just about feeding the body—it's about celebrating culture, creating memories, and savoring every bite. Let D&Sspice be part of your kitchen, your heritage, your story, and your journey to extraordinary flavors.",
+    mission: "Cooking isn't just about feeding the body it's about celebrating culture, creating memories, and savoring every bite. Let D&Sspice be part of your kitchen, your heritage, your story, and your journey to extraordinary flavors.",
     imageSrc: "images/aboutBanner.jpeg",
     values: [
       {
@@ -41,13 +41,13 @@ export const landingPageData = {
     items: [
       {
         title: "100% Natural & Organic",
-        description: "We believe the best flavors come straight from nature. Our locust beans are pure, sandfree, unprocessed, and completely free from artificial additives or preservatives.",
+        description: "We believe the best flavors come straight from nature. Our locust beans are pure, sandfree, and completely free from artificial additives or preservatives.",
         imageSrc: "images/featureImg1.jpeg",
         imageAlt: "Natural and organic locust beans"
       },
       {
         title: "Rich, Bold Flavor That Transforms Your Cooking",
-        description: "Imagine the deep, smoky aroma of locust beans enhancing your favorite dishes—Egusi soup, Efo Riro, Okro, Native Jollof rice, Banga soup, and more!",
+        description: "Imagine the deep, smoky aroma of locust beans enhancing your favorite dishes Egusi soup, Efo Riro, Okro, Native Jollof rice, Banga soup, and more!",
         imageSrc: "images/featureImg2.jpeg",
         imageAlt: "Traditional African dishes"
       },
@@ -59,7 +59,7 @@ export const landingPageData = {
       },
       {
         title: "Fast, Reliable & Hassle-Free Delivery",
-        description: "We ensure quick, efficient, and fresh delivery straight to your doorstep—anywhere in the UK. No delays, no stress—just premium locust beans ready to elevate your cooking.",
+        description: "We ensure quick, efficient, and fresh delivery straight to your doorstep anywhere in the UK. No delays, no stress, just premium locust beans ready to elevate your cooking.",
         imageSrc: "images/featureImg4.jpeg",
         imageAlt: "Premium packaging and delivery"
       }

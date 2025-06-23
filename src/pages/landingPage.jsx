@@ -84,139 +84,8 @@ export default function LandingPage() {
   }, [location.state]);
 
   return (
-    <div className={`bg-background ${darkMode ? 'dark' : ''}`}>
-      {/*  Header  */}
-      <motion.header 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed inset-x-0 top-0 z-50"
-      >
-        <nav className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
-          darkMode ? 'bg-dark-background/90' : 'bg-background/90'
-        } backdrop-blur-md border-b border-secondary/10`}>
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo Section */}
-            <Link to="/" className="flex-shrink-0">
-              <img
-                src="images/spicy-logo.png"
-                alt="D&Sspice Logo"
-                className="h-10 w-auto"
-              />
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex md:items-center md:space-x-8">
-              {navigation.map((item) => (
-                item.to.startsWith('#') ? (
-            <button
-                    key={item.name}
-                    onClick={item.action}
-                    className="text-sm font-medium transition-colors duration-200 hover:text-accent"
-                  >
-                    {item.name}
-            </button>
-                ) : (
-                  <Link
-                    key={item.name}
-                    to={item.to}
-                    onClick={item.action}
-                    className="text-sm font-medium transition-colors duration-200 hover:text-accent"
-                  >
-                {item.name}
-                  </Link>
-                )
-            ))}
-          </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4">
-              <Link
-                to="/order"
-                className="hidden md:block px-4 py-2 rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-            >
-              Order Now
-              </Link>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="md:hidden p-2"
-                onClick={() => setMobileMenuOpen(true)}
-              >
-                <Bars3Icon className="h-6 w-6" />
-              </button>
-            </div>
-          </div>
-        </nav>
-      </motion.header>
-
-      {/* Mobile menu */}
-      <Dialog
-        as="div"
-        className="fixed inset-0 z-50 lg:hidden"
-        open={mobileMenuOpen}
-        onClose={setMobileMenuOpen}
-      >
-        {/* Background overlay */}
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
-        
-        {/* Panel */}
-        <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background dark:bg-dark-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-secondary/10">
-            <div className="flex items-center justify-between">
-                <img
-              src="images/spicy-logo.png"
-                  alt="D&Sspice Logo"
-                  className="h-8 w-auto"
-                />
-              <button
-                type="button"
-              className="-m-2.5 rounded-md p-2.5"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className="sr-only">Close menu</span>
-              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
-          
-            <div className="mt-6 flow-root">
-              <div className="-my-6 divide-y divide-secondary/10">
-                <div className="space-y-2 py-6">
-                  {navigation.map((item) => (
-                    item.to.startsWith('#') ? (
-                      <button
-                        key={item.name}
-                        onClick={() => {
-                          item.action?.();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
-                      >
-                        {item.name}
-                      </button>
-                    ) : (
-                      <Link
-                      key={item.name}
-                        to={item.to}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-secondary/10"
-                    >
-                      {item.name}
-                      </Link>
-                    )
-                  ))}
-                </div>
-                <div className="py-6">
-                  <Link
-                  to="/order"
-                  className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
-                  >
-                    Order Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-        </Dialog.Panel>
-        </Dialog>
+    <div className={`bg-primary ${darkMode ? 'dark' : ''}`}>
+     
 
       {/* Enhanced Hero Section */}
       <div className="relative min-h-screen flex items-center justify-center">
@@ -289,23 +158,20 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
             {landingPageData.features.items.map((feature, index) => (
-              <AnimatedCard key={feature.title}>
-                <div className="group relative overflow-hidden rounded-2xl">
-                  <AnimatedImage
-                    src={feature.imageSrc}
-                    alt={feature.imageAlt}
-                    className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent" />
-                  <div className="absolute bottom-0 p-6 sm:p-8 z-10">
-                    <h3 className="text-2xl font-semibold text-white mb-3">
-                      {feature.title}
-                    </h3>
-                    <p className="text-white/90 text-lg">
-                      {feature.description}
-                    </p>
-                  </div>
-            </div>
+              <AnimatedCard key={feature.title} className="overflow-hidden rounded-2xl shadow-lg bg-background-alt flex flex-col">
+                <AnimatedImage
+                  src={feature.imageSrc}
+                  alt={feature.imageAlt}
+                  className="w-full h-72 object-cover"
+                />
+                <div className="p-6 sm:p-8 bg-white dark:bg-dark-background-alt">
+                  <h3 className="text-2xl font-semibold mb-3 text-text-primary dark:text-white">
+                    {feature.title}
+                  </h3>
+                  <p className="text-lg text-text-secondary dark:text-dark-text-secondary">
+                    {feature.description}
+                  </p>
+                </div>
               </AnimatedCard>
             ))}
           </div>
@@ -456,13 +322,13 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/*  Footer */}
-        <footer className="bg-background border-t border-secondary/10 py-8">
+        {/* <footer className="bg-background border-t border-secondary/10 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-text-secondary">
             <p>&copy; {new Date().getFullYear()} D&Sspice. All rights reserved.</p>
             </div>
           </div>
-        </footer>
+        </footer> */}
     </div>
   )
 }

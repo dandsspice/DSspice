@@ -72,7 +72,7 @@ export default function Header() {
     { name: 'Contact Us', to: '/contact' }
   ];
 
-  const linkStyles = "text-sm font-medium text-text-primary transition-colors duration-200 hover:text-accent";
+  const linkStyles = "text-sm font-medium text-secondary transition-colors duration-200 hover:text-accent";
   const mobileLinkStyles = "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-text-primary hover:bg-secondary/10";
 
   return (
@@ -81,10 +81,10 @@ export default function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed inset-x-0 top-0 z-50"
+        className="bg-primary fixed inset-x-0 top-0 z-50"
       >
-        <nav className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
-          darkMode ? 'bg-dark-background/90' : 'bg-background/90'
+        <nav className={`rounded-full shadow-lg mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
+          darkMode ? 'bg-dark-primary/90' : 'bg-background/90'
         } backdrop-blur-md border-b border-secondary/10`}>
           <div className="flex h-16 items-center justify-between">
             {/* Logo Section */}
@@ -135,8 +135,8 @@ export default function Header() {
                     className="flex items-center border border-secondary/40 rounded-full px-3 py-1.5 bg-white hover:shadow transition-all focus:outline-none"
                     onClick={() => setProfileOpen(!profileOpen)}
                   >
-                    <UserCircleIcon className="h-6 w-6 text-text-primary" />
-                    <span className="ml-2 font-medium text-text-primary">
+                    <UserCircleIcon className="h-6 w-6 text-secondary" />
+                    <span className="ml-2 font-medium text-secondary">
                       {userProfile
                         ? userProfile.first_name.length > 6
                           ? userProfile.first_name.slice(0, 6) + '…'
@@ -165,7 +165,7 @@ export default function Header() {
                               </p>
                             </div>
                           </div>
-                          <div className="border-t border-secondary/10 pt-4">
+                          <div className="border-t border-primary pt-4">
                             <Link
                               to="/payments"
                               className="block px-4 py-2 text-sm text-text-primary hover:bg-secondary/10 rounded-md"

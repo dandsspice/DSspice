@@ -10,7 +10,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-background dark:bg-dark-background border-t border-secondary/10 py-8 text-text-secondary dark:text-dark-text-secondary">
+    <footer className="bg-primary  border-t border-secondary/10 py-8 text-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -33,7 +33,7 @@ export default function Footer() {
                 <li key={item.name}>
                   <Link
                     to={item.to}
-                    className="text-sm text-text-secondary dark:text-dark-text-secondary hover:text-accent"
+                    className="text-sm text-secondary hover:text-accent"
                   >
                     {item.name}
                   </Link>
@@ -45,7 +45,7 @@ export default function Footer() {
           {/* Contact Info */}
           <div>
             <h3 className="font-semibold mb-4">Contact</h3>
-            <ul className="space-y-2 text-sm text-text-secondary dark:text-dark-text-secondary">
+            <ul className="space-y-2 text-sm text-secondary">
               <li>Email: info@dsspice.com</li>
               <li>Phone: +44 123 456 7890</li>
               <li>Location: United Kingdom</li>
@@ -59,7 +59,7 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full px-4 py-2 rounded-lg border border-secondary/20 bg-background dark:bg-dark-background"
+                className="w-full px-4 py-2 rounded-lg border border-secondary/20 bg-white"
               />
               <Button
                 type="submit"
@@ -72,7 +72,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-secondary/10 text-center text-sm text-text-secondary dark:text-dark-text-secondary">
+        <div className=" mt-8 pt-8 border-t border-secondary/10 text-center text-sm text-secondary">
           <p>&copy; {new Date().getFullYear()} D&Sspice. All rights reserved.</p>
         </div>
       </div>
