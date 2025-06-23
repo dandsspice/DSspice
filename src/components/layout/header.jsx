@@ -73,7 +73,7 @@ export default function Header() {
   ];
 
   const linkStyles = "text-sm font-medium text-secondary transition-colors duration-200 hover:text-accent";
-  const mobileLinkStyles = "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-text-primary hover:bg-secondary/10";
+  const mobileLinkStyles = "-mx-3 block rounded-lg  px-3 py-2 text-base font-semibold leading-7 text-text-primary hover:bg-secondary/10";
 
   return (
     <>
@@ -81,7 +81,7 @@ export default function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-primary fixed inset-x-0 top-0 z-50"
+        className="bg-primary p-2 fixed inset-x-0 top-0 z-50"
       >
         <nav className={`rounded-full shadow-lg mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
           darkMode ? 'bg-dark-primary/90' : 'bg-background/90'
