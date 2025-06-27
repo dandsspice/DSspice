@@ -43,25 +43,29 @@ export const landingPageData = {
         title: "100% Natural & Organic",
         description: "We believe the best flavors come straight from nature. Our locust beans are pure, sandfree, and completely free from artificial additives or preservatives.",
         imageSrc: "images/featureImg1.jpeg",
-        imageAlt: "Natural and organic locust beans"
+        imageAlt: "Natural and organic locust beans",
+        icon: "SparklesIcon"
       },
       {
         title: "Rich, Bold Flavor That Transforms Your Cooking",
         description: "Imagine the deep, smoky aroma of locust beans enhancing your favorite dishes Egusi soup, Efo Riro, Okro, Native Jollof rice, Banga soup, and more!",
         imageSrc: "images/featureImg2.jpeg",
-        imageAlt: "Traditional African dishes"
+        imageAlt: "Traditional African dishes",
+        icon: "FireIcon"
       },
       {
         title: "Nutrient-Packed Superfood",
         description: "Beyond taste, our dried locust beans are a powerhouse of nutrition, high in protein, rich in fiber, loaded with antioxidants, and a natural source of vitamins and minerals.",
         imageSrc: "images/featureImg3.jpeg",
-        imageAlt: "Nutritional benefits illustration"
+        imageAlt: "Nutritional benefits illustration",
+        icon: "BoltIcon"
       },
       {
         title: "Fast, Reliable & Hassle-Free Delivery",
         description: "We ensure quick, efficient, and fresh delivery straight to your doorstep anywhere in the UK. No delays, no stress, just premium locust beans ready to elevate your cooking.",
         imageSrc: "images/featureImg4.jpeg",
-        imageAlt: "Premium packaging and delivery"
+        imageAlt: "Premium packaging and delivery",
+        icon: "TruckIcon"
       }
     ]
   },

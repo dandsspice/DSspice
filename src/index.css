@@ -45,3 +45,11 @@
   --color-accent: var(--color-dark-accent);
   --color-accent-light: var(--color-dark-accent-light);
 }
+
+@keyframes pulse-glass {
+  0%, 100% { border-image: linear-gradient(120deg, #a78bfa 0%, #f472b6 100%) 1; }
+  50% { border-image: linear-gradient(120deg, #f472b6 0%, #a78bfa 100%) 1; }
+}
+.animate-pulse-glass {
+  animation: pulse-glass 1.5s infinite;
+}

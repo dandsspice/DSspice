@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, ChevronDownIcon, SparklesIcon, FireIcon, BoltIcon, TruckIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import landingPageData from '../data/landingPageData'
 import { motion, useScroll, useTransform, useInView } from 'framer-motion'
@@ -27,8 +27,16 @@ import { Link, useLocation } from 'react-router-dom'
 
 // Gradient overlay with better opacity
 const GradientOverlay = () => (
-  <div className="absolute inset-0 bg-gradient-to-b from-black/100 via-black/40 to-transparent" />
+  <div className={`absolute inset-0 bg-gradient-to-b from-black/100 via-black/40 to-transparent -mt-20`}/>
 );
+
+// Icon mapping for features
+const featureIcons = {
+  SparklesIcon: SparklesIcon,
+  FireIcon: FireIcon,
+  BoltIcon: BoltIcon,
+  TruckIcon: TruckIcon,
+};
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -84,7 +92,7 @@ export default function LandingPage() {
   }, [location.state]);
 
   return (
-    <div className={`bg-primary ${darkMode ? 'dark' : ''}`}>
+    <div>
      
 
       {/* Enhanced Hero Section */}
@@ -92,9 +100,9 @@ export default function LandingPage() {
         <AnimatedImage
           src={landingPageData.hero.backgroundImage}
           alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover -mt-10"
         />
-        <GradientOverlay />
+        <GradientOverlay/>
         <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
           <motion.div
             variants={staggerContainer}
@@ -145,8 +153,32 @@ export default function LandingPage() {
             </div>
 
       {/* Features Section */}
-      <section className="py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="lg:py-20 relative overflow-hidden bg-gradient-to-b from-violet-100 to-purple-200 ">
+        {/* Patterned and gradient background (pattern at top, fade down) */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          {/* Subtle pattern using SVG at the top */}
+          <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 400 400">
+            <defs>
+              <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor" className="text-accent" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots)" />
+          </svg>
+          {/* Fading gradient overlay: fade from background at top to transparent at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/0 via-background/60 to-background/80 dark:from-dark-background/0 dark:via-dark-background/60 dark:to-dark-background/80" />
+        </div>
+        {/* Gradient blend to about section, animated on scroll */}
+        <motion.div
+          style={{ y: 0 }}
+          initial={{ opacity: 1 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false, amount: 0.2 }}
+          className="absolute bottom-0 left-0 w-full h-32 z-10 pointer-events-none"
+        >
+          <div className="w-full h-full bg-gradient-to-b from-transparent to-background dark:to-dark-background transition-all duration-700" />
+        </motion.div>
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedText className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold">
               Why Choose D&Sspice?
@@ -157,23 +189,37 @@ export default function LandingPage() {
           </AnimatedText>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-            {landingPageData.features.items.map((feature, index) => (
-              <AnimatedCard key={feature.title} className="overflow-hidden rounded-2xl shadow-lg bg-background-alt flex flex-col">
-                <AnimatedImage
-                  src={feature.imageSrc}
-                  alt={feature.imageAlt}
-                  className="w-full h-72 object-cover"
-                />
-                <div className="p-6 sm:p-8 bg-white dark:bg-dark-background-alt">
-                  <h3 className="text-2xl font-semibold mb-3 text-text-primary dark:text-white">
-                    {feature.title}
-                  </h3>
-                  <p className="text-lg text-text-secondary dark:text-dark-text-secondary">
-                    {feature.description}
-                  </p>
-                </div>
-              </AnimatedCard>
-            ))}
+            {landingPageData.features.items.map((feature, index) => {
+              const Icon = featureIcons[feature.icon];
+              return (
+                <AnimatedCard
+                  key={feature.title}
+                  className="overflow-hidden rounded-2xl shadow-xl border border-white/20 backdrop-blur-lg bg-gradient-to-br from-white/70 to-white/30 dark:from-dark-background/70 dark:to-dark-background/30 flex flex-col max-w-md mx-auto"
+                >
+                  <AnimatedImage
+                    src={feature.imageSrc}
+                    alt={feature.imageAlt}
+                    className="w-full h-56 object-cover"
+                  />
+                  <div className="flex items-center gap-3 -mt-7 px-4 sm:px-6">
+                    {Icon && (
+                      <div className="rounded-full bg-accent/60 p-2 shadow-md border border-accent">
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                    
+                  </div>
+                  <div className="p-4 sm:p-6 bg-white/60 dark:bg-dark-background/60  items-center rounded-b-2xl">
+                  <h3 className="text-2xl font-semibold text-text-primary dark:text-white">
+                      {feature.title}
+                    </h3>
+                    <p className="text-lg text-text-secondary dark:text-dark-text-secondary text-left">
+                      {feature.description}
+                    </p>
+                  </div>
+                </AnimatedCard>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -194,12 +240,12 @@ export default function LandingPage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         >
-          {/* Add highlight effect when scrolled into view */}
+          {/* Accent border at the bottom, not top */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={isAboutInView ? { scaleX: 1 } : {}}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="absolute top-0 left-0 w-full h-1 bg-accent origin-left"
+            className="absolute bottom-0 left-0 w-full h-1 bg-accent origin-left"
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -248,10 +294,21 @@ export default function LandingPage() {
 
 
       {/* Testimonials Section */}
-      <section className="py-20 sm:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 sm:py-32 relative overflow-hidden">
+        {/* Vintage background image with opacity */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/vintage-bg.jpg"
+            alt="Vintage background"
+            className="w-full h-full object-cover opacity-20"
+            style={{ objectPosition: 'center' }}
+          />
+          {/* Overlay for readability */}
+          <div className="absolute inset-0 bg-white/60 dark:bg-dark-background/70" />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedText className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold">
+            <h2 className="text-xl md:text-4xl font-bold">
               What Our Customers Say
             </h2>
             <div className="mt-4 w-20 h-1 bg-accent mx-auto"></div>
@@ -259,8 +316,13 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {landingPageData.testimonials.items.map((testimonial, index) => (
-              <AnimatedCard key={index}>
-                <div className="p-8 rounded-2xl bg-background-alt">
+              <AnimatedCard key={index}
+                className="group overflow-hidden rounded-2xl shadow-xl border border-white/30 bg-white/40 dark:bg-dark-background/40 backdrop-blur-lg transition-all duration-300 hover:shadow-2xl hover:border-accent/60 relative"
+               
+              >
+                {/* Animated border overlay for liquid effect */}
+                <div className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-accent/70 group-hover:animate-pulse-glass z-10 transition-all duration-500" style={{borderImage: 'linear-gradient(120deg, #a78bfa 0%, #f472b6 100%) 1'}} />
+                <div className="relative z-20 p-8 rounded-2xl bg-background-alt/60 backdrop-blur-md">
                   <div className="flex items-center gap-4 mb-6">
                     <img
                       src={testimonial.imageSrc}
@@ -283,12 +345,22 @@ export default function LandingPage() {
 
 
       {/* Enhanced CTA Section */}
-      <AnimatedSection className="py-20 sm:py-32 bg-background-alt">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+      <AnimatedSection className="relative py-20 sm:py-32 bg-background-alt">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/vintage-bg.jpg"
+            alt="Vintage background"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: 'center' }}
+          />
+          {/* Overlay for readability */}
+          <div className="absolute inset-0 bg-black/60 dark:bg-dark-background/70" />
+        </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
             Ready to Experience Authentic Flavor?
           </h2>
-          <p className="text-lg text-text-secondary mb-10 max-w-2xl mx-auto">
+          <p className="text-lg text-white mb-10 max-w-2xl mx-auto">
             Join thousands of satisfied customers who trust D&Sspice for their authentic
             locust bean needs. Limited stock available!
           </p>
@@ -301,6 +373,7 @@ export default function LandingPage() {
                 variant="primary"
                 size="large"
                 fullWidth
+                className='text-whites'
               >
                 Order Now
               </Button>
@@ -312,6 +385,7 @@ export default function LandingPage() {
               <Button
                 variant="outline"
                 size="large"
+                className='text-white'
                 fullWidth
               >
                 Contact Us

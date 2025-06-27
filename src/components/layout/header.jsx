@@ -81,7 +81,7 @@ export default function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="bg-primary p-2 fixed inset-x-0 top-0 z-50"
+        className="p-2 fixed inset-x-0 top-0 z-50"
       >
         <nav className={`rounded-full shadow-lg mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
           darkMode ? 'bg-dark-primary/90' : 'bg-background/90'
