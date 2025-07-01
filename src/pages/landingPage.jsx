@@ -197,7 +197,7 @@ export default function LandingPage() {
           <div className="hidden md:flex w-1/2 zoom-1 h-full items-center justify-center relative -mt-100">
             {/* Creative overlapping layout */}
             <PixelImage src="/images/products/Dried-locust-beans-250g.jpg" alt="Pixel 1" className="absolute left-8 top-1 w-56 h-56 z-30 rounded-3xl rotate-3" style={{ zIndex: 30 }} />
-            <PixelImage src="/images\products\Dried-locust-beans-150g.jpg" alt="Pixel 2" className="absolute left-40 top-32 w-44 h-44 z-40 rounded-full -rotate-6" style={{ zIndex: 50 }} />
+            <PixelImage src="/images/products/Dried-locust-beans-150g.jpg" alt="Pixel 2" className="absolute left-40 top-32 w-44 h-44 z-40 rounded-full -rotate-6" style={{ zIndex: 50 }} />
             <PixelImage src="/images/products/Dried-locust-beans-150g-2.jpg" alt="Pixel 3" className="absolute left-15 top-64 w-50 h-50 z-10 rounded-2xl rotate-12" style={{ zIndex: 10 }} />
             <PixelImage src="/images/products/Dried-locust-beans.jpg" alt="Pixel 4" className="absolute left-70 top-16 w-52 h-90 z-30 rounded-xl -rotate-2" style={{ zIndex: 40 }} />
           </div>
@@ -230,7 +230,7 @@ export default function LandingPage() {
         >
           <div className="w-full h-full bg-gradient-to-b from-transparent to-background dark:to-dark-background transition-all duration-700" />
         </motion.div>
-        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
           <AnimatedText className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold">
               Why Choose D&Sspice?
