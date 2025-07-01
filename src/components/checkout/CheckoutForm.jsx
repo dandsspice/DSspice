@@ -105,6 +105,10 @@ export default function CheckoutForm({ orderData }) {
   const [hasSelectedShippingMethod, setHasSelectedShippingMethod] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [resetStep, setResetStep] = useState(1); // 1=email, 2=otp+password
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
   
   // Get order data from location state
   const order = location.state || orderData || {
@@ -1553,46 +1557,159 @@ export default function CheckoutForm({ orderData }) {
                         
                         {isForgotPassword ? (
                           <div className="space-y-6">
-                            <div>
-                              <label htmlFor="resetEmail" className={labelClasses}>Email</label>
-                              <input
-                                type="email"
-                                id="resetEmail"
-                                value={resetEmail}
-                                onChange={(e) => setResetEmail(e.target.value)}
-                                className={getInputStyles('resetEmail')}
-                                required
-                              />
-                              {errors.resetEmail && (
-                                <p className={errorClasses}>{errors.resetEmail}</p>
-                              )}
-                              {errors.success && (
-                                <p className="text-green-500 text-sm mt-2">{errors.success}</p>
-                              )}
-                            </div>
-                            
-                            <div className="flex flex-col space-y-4">
-                              <Button
-                                variant="primary"
-                                onClick={handleForgotPassword}
-                                className="w-full"
-                                disabled={isLoading}
-                              >
-                                {isLoading ? 'Sending...' : 'Send Reset Instructions'}
-                              </Button>
-                              
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsForgotPassword(false);
-                                  setResetEmail('');
-                                  setErrors({});
-                                }}
-                                className="text-sm text-accent hover:underline"
-                              >
-                                Back to Login
-                              </button>
-                            </div>
+                            {/* <h2 className="text-3xl text-center font-bold mb-6">Reset Password</h2> */}
+                            {resetStep === 1 && (
+                              <>
+                                <div>
+                                  <label htmlFor="resetEmail" className={labelClasses}>Email</label>
+                                  <input
+                                    type="email"
+                                    id="resetEmail"
+                                    value={resetEmail}
+                                    onChange={e => setResetEmail(e.target.value)}
+                                    className={getInputStyles('resetEmail')}
+                                    required
+                                  />
+                                  {errors.resetEmail && <p className={errorClasses}>{errors.resetEmail}</p>}
+                                </div>
+                                <Button
+                                  variant="primary"
+                                  onClick={async () => {
+                                    setIsLoading(true);
+                                    setErrors({});
+                                    const res = await authService.forgetPassword(resetEmail);
+                                    setIsLoading(false);
+                                    if (res.code === 200 || res.code === 201) {
+                                      setResetStep(2);
+                                    } else {
+                                      setErrors({ resetEmail: res.message || 'Failed to send OTP' });
+                                    }
+                                  }}
+                                  className="w-full"
+                                  disabled={isLoading}
+                                >
+                                  {isLoading ? 'Sending...' : 'Send OTP'}
+                                </Button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsForgotPassword(false);
+                                    setResetEmail('');
+                                    setResetStep(1);
+                                    setResetOtp('');
+                                    setResetNewPassword('');
+                                    setResetConfirmPassword('');
+                                    setErrors({});
+                                  }}
+                                  className="text-sm text-accent hover:underline"
+                                >
+                                  Back to Login
+                                </button>
+                              </>
+                            )}
+                            {resetStep === 2 && (
+                              <>
+                                <div>
+                                  <label htmlFor="resetEmail" className={labelClasses}>Email</label>
+                                  <input
+                                    type="email"
+                                    id="resetEmail"
+                                    value={resetEmail}
+                                    onChange={e => setResetEmail(e.target.value)}
+                                    className={getInputStyles('resetEmail')}
+                                    required
+                                    disabled
+                                  />
+                                </div>
+                                <div>
+                                  <label htmlFor="resetOtp" className={labelClasses}>OTP Code</label>
+                                  <input
+                                    type="text"
+                                    id="resetOtp"
+                                    value={resetOtp}
+                                    onChange={e => setResetOtp(e.target.value)}
+                                    className={getInputStyles('resetOtp')}
+                                    required
+                                  />
+                                  {errors.resetOtp && <p className={errorClasses}>{errors.resetOtp}</p>}
+                                </div>
+                                <div>
+                                  <label htmlFor="resetNewPassword" className={labelClasses}>New Password</label>
+                                  <input
+                                    type="password"
+                                    id="resetNewPassword"
+                                    value={resetNewPassword}
+                                    onChange={e => setResetNewPassword(e.target.value)}
+                                    className={getInputStyles('resetNewPassword')}
+                                    required
+                                  />
+                                  {errors.resetNewPassword && <p className={errorClasses}>{errors.resetNewPassword}</p>}
+                                </div>
+                                <div>
+                                  <label htmlFor="resetConfirmPassword" className={labelClasses}>Confirm New Password</label>
+                                  <input
+                                    type="password"
+                                    id="resetConfirmPassword"
+                                    value={resetConfirmPassword}
+                                    onChange={e => setResetConfirmPassword(e.target.value)}
+                                    className={getInputStyles('resetConfirmPassword')}
+                                    required
+                                  />
+                                  {errors.resetConfirmPassword && <p className={errorClasses}>{errors.resetConfirmPassword}</p>}
+                                </div>
+                                {errors.resetPassword && <p className={errorClasses}>{errors.resetPassword}</p>}
+                                {errors.success && <p className="text-green-500 text-sm mt-2">{errors.success}</p>}
+                                <Button
+                                  variant="primary"
+                                  onClick={async () => {
+                                    setIsLoading(true);
+                                    setErrors({});
+                                    if (!resetOtp) {
+                                      setErrors({ resetOtp: 'OTP is required' }); setIsLoading(false); return;
+                                    }
+                                    if (!resetNewPassword) {
+                                      setErrors({ resetNewPassword: 'New password is required' }); setIsLoading(false); return;
+                                    }
+                                    if (resetNewPassword !== resetConfirmPassword) {
+                                      setErrors({ resetConfirmPassword: 'Passwords do not match' }); setIsLoading(false); return;
+                                    }
+                                    const res = await authService.resetPassword(resetEmail, resetOtp, resetNewPassword, resetConfirmPassword);
+                                    setIsLoading(false);
+                                    if (res.code === 200 || res.code === 201) {
+                                      setErrors({ success: 'Password reset successful! You can now log in.' });
+                                      setTimeout(() => {
+                                        setIsForgotPassword(false);
+                                        setResetEmail('');
+                                        setResetStep(1);
+                                        setResetOtp('');
+                                        setResetNewPassword('');
+                                        setResetConfirmPassword('');
+                                        setErrors({});
+                                      }, 2000);
+                                    } else {
+                                      setErrors({ resetPassword: res.message || 'Failed to reset password' });
+                                    }
+                                  }}
+                                  className="w-full"
+                                  disabled={isLoading}
+                                >
+                                  {isLoading ? 'Resetting...' : 'Reset Password'}
+                                </Button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setResetStep(1);
+                                    setResetOtp('');
+                                    setResetNewPassword('');
+                                    setResetConfirmPassword('');
+                                    setErrors({});
+                                  }}
+                                  className="text-sm text-accent hover:underline mt-2"
+                                >
+                                  Back to OTP Request
+                                </button>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <>

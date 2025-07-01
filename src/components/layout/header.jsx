@@ -73,7 +73,7 @@ export default function Header() {
   ];
 
   const linkStyles = "text-sm font-medium text-secondary transition-colors duration-200 hover:text-accent";
-  const mobileLinkStyles = "-mx-3 block rounded-lg  px-3 py-2 text-base font-semibold leading-7 text-text-primary hover:bg-secondary/10";
+  const mobileLinkStyles = "-mx-3  px-3 py-2 text-base font-semibold leading-7 text-text-primary hover:bg-secondary/10";
 
   return (
     <>
@@ -81,12 +81,12 @@ export default function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="p-2 fixed inset-x-0 top-0 z-50"
+        className="fixed inset-x-0 top-0 z-50"
       >
-        <nav className={`rounded-full shadow-lg mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${
-          darkMode ? 'bg-dark-primary/90' : 'bg-background/90'
+        <nav className={`shadow-lg w-[100%] px-4 sm:px-6 lg:px-8 ${
+          darkMode ? 'bg-dark-primary/70' : 'bg-background/90'
         } backdrop-blur-md border-b border-secondary/10`}>
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex p-3 items-center justify-between">
             {/* Logo Section */}
             <Link to="/" className="flex-shrink-0">
               <img
@@ -221,28 +221,47 @@ export default function Header() {
         open={mobileMenuOpen}
         onClose={setMobileMenuOpen}
       >
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
-        
-        <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-secondary/10">
-          <div className="flex items-center justify-between">
-            <img
-              src="/images/spicy-logo.png"
-              alt="D&Sspice Logo"
-              className="h-8 w-auto"
-            />
-            <button
-              type="button"
-              className="-m-2.5 rounded-md p-2.5 text-text-primary"
-              onClick={() => setMobileMenuOpen(false)}
+        {/* Sidebar background with blur and gradient */}
+        <div className="fixed inset-0 bg-gradient-to-br from-secondary/30 via-background/80 to-white/90 dark:from-dark-background/80 dark:to-dark-primary/90 backdrop-blur-xl" aria-hidden="true" />
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-xs sm:max-w-sm overflow-y-auto shadow-2xl rounded-l-3xl bg-background/90 dark:bg-dark-background/90 px-6 py-6 flex flex-col gap-6"
             >
-              <span className="sr-only">Close menu</span>
-              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-          
-          <div className="mt-6 flow-root">
-            <div className="-my-6 divide-y divide-secondary/10">
-              <div className="space-y-2 py-6">
+              {/* Top: Logo and Close Button */}
+              <div className="flex items-center justify-between mb-6">
+                <img
+                  src="/images/spicy-logo.png"
+                  alt="D&Sspice Logo"
+                  className="h-10 w-auto"
+                />
+                <button
+                  type="button"
+                  className="rounded-full p-2.5 text-text-primary hover:bg-secondary/10 transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="sr-only">Close menu</span>
+                  <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Profile section (if authenticated) */}
+              {isAuthenticated && userProfile && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/10 mb-2">
+                  <UserCircleIcon className="h-8 w-8 text-secondary" />
+                  <div>
+                    <div className="font-semibold text-secondary">{userProfile.first_name} {userProfile.last_name}</div>
+                    <div className="text-xs text-text-secondary">{userProfile.email}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation links */}
+              <nav className="flex flex-col gap-2">
                 {navigation.map((item) => (
                   item.section ? (
                     <button
@@ -251,7 +270,7 @@ export default function Header() {
                         handleNavigation(item.section);
                         setMobileMenuOpen(false);
                       }}
-                      className={mobileLinkStyles}
+                      className={`w-full text-left px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 hover:bg-secondary/10 focus:bg-secondary/20 focus:outline-none ${location.pathname === '/' && item.section && location.hash === `#${item.section}` ? 'bg-accent/10 text-accent' : 'text-text-primary'}`}
                     >
                       {item.name}
                     </button>
@@ -260,24 +279,38 @@ export default function Header() {
                       key={item.name}
                       to={item.to}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`${mobileLinkStyles} ${location.pathname === item.to ? 'text-accent' : ''}`}
+                      className={`w-full block px-4 py-3 rounded-xl font-semibold text-base transition-all duration-200 hover:bg-secondary/10 focus:bg-secondary/20 focus:outline-none ${location.pathname === item.to ? 'bg-accent/10 text-accent' : 'text-text-primary'}`}
                     >
                       {item.name}
                     </Link>
                   )
                 ))}
-              </div>
-              <div className="py-6">
-                <Link
-                  to="/order"
-                  className="block px-4 py-2 text-center rounded-full bg-secondary text-primary font-medium transition-all duration-200 hover:bg-secondary-light hover:shadow-lg"
+              </nav>
+
+              {/* Divider */}
+              <div className="border-t border-secondary/20 my-4" />
+
+              {/* Action button */}
+              <Link
+                to="/order"
+                className="block w-full px-4 py-3 rounded-xl bg-secondary text-primary font-bold text-center shadow-md hover:bg-secondary-light transition-all duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Order Now
+              </Link>
+
+              {/* Logout button (if authenticated) */}
+              {isAuthenticated && (
+                <button
+                  className="w-full mt-2 px-4 py-3 rounded-xl text-red-500 font-semibold bg-red-50 hover:bg-red-100 transition-all duration-200"
+                  onClick={handleLogout}
                 >
-                  Order Now
-                </Link>
-              </div>
-            </div>
-          </div>
-        </Dialog.Panel>
+                  Logout
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Dialog>
     </>
   );

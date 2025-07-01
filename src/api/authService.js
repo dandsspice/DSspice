@@ -156,13 +156,13 @@ const authService = {
       const formData = new FormData();
       
       // Properly encode passwords in base64
-      const encodedCurrentPassword = btoa(unescape(encodeURIComponent(currentPassword)));
-      const encodedNewPassword = btoa(unescape(encodeURIComponent(newPassword)));
-      const encodedConfirmPassword = btoa(unescape(encodeURIComponent(confirmPassword)));
+      // const encodedCurrentPassword = btoa(unescape(encodeURIComponent(currentPassword)));
+      // const encodedNewPassword = btoa(unescape(encodeURIComponent(newPassword)));
+      // const encodedConfirmPassword = btoa(unescape(encodeURIComponent(confirmPassword)));
       
-      formData.append('current_password', encodedCurrentPassword);
-      formData.append('new_password', encodedNewPassword);
-      formData.append('confirm_password', encodedConfirmPassword);
+      formData.append('current_password', currentPassword);
+      formData.append('password', newPassword);
+      formData.append('confirm_password', confirmPassword);
 
       const response = await api.post('/user/changepassword', formData, {
         headers: {
@@ -176,6 +176,54 @@ const authService = {
       return error.response?.data || {
         code: 500,
         message: 'An error occurred while changing password',
+        data: null,
+        errors: null
+      };
+    }
+  },
+
+  // Send OTP to user's email for password reset
+  forgetPassword: async (email) => {
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      const response = await api.post('/auth/forgetpassword', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred during password reset request',
+        data: null,
+        errors: null
+      };
+    }
+  },
+
+  // Reset password with email, code, new password, and confirm password
+  resetPassword: async (email, code, newPassword, confirmPassword) => {
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('code', code);
+      // Properly encode passwords in base64
+      const encodedNewPassword = btoa(unescape(encodeURIComponent(newPassword)));
+      const encodedConfirmPassword = btoa(unescape(encodeURIComponent(confirmPassword)));
+      formData.append('password', encodedNewPassword);
+      formData.append('confirm_password', encodedConfirmPassword);
+      const response = await api.post('/auth/resetpassword', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      return error.response?.data || {
+        code: 500,
+        message: 'An error occurred during password reset',
         data: null,
         errors: null
       };

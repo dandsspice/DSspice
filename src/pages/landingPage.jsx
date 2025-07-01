@@ -27,7 +27,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 // Gradient overlay with better opacity
 const GradientOverlay = () => (
-  <div className={`absolute inset-0 bg-gradient-to-b from-black/100 via-black/40 to-transparent -mt-20`}/>
+  <div className={`absolute inset-0 bg-gradient-to-b from-secondary/100 bg-secondary/40 to-transparent -mt-20`}/>
 );
 
 // Icon mapping for features
@@ -37,6 +37,19 @@ const featureIcons = {
   BoltIcon: BoltIcon,
   TruckIcon: TruckIcon,
 };
+
+const PixelImage = ({ src, alt, className = '', style = {} }) => (
+  <motion.img
+    src={src}
+    alt={alt}
+    className={`object-cover shadow-2xl border-4 border-white dark:border-dark-background cursor-pointer transition-all duration-300 ${className}`}
+    style={{ imageRendering: 'pixelated', ...style }}
+    whileHover={{ scale: 1.12, rotate: [0, 4, -4, 0], boxShadow: '0 12px 40px 0 rgba(34,197,94,0.25)' }}
+    whileTap={{ scale: 0.97 }}
+    transition={{ type: 'spring', stiffness: 180, damping: 14 }}
+    whileFocus={{ scale: 1.07 }}
+  />
+);
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -97,60 +110,99 @@ export default function LandingPage() {
 
       {/* Enhanced Hero Section */}
       <div className="relative min-h-screen flex items-center justify-center">
-        <AnimatedImage
-          src={landingPageData.hero.backgroundImage}
-          alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover -mt-10"
-        />
+        {/* Mobile: show background image, Desktop: show gradient+pattern */}
+        <div className="absolute inset-0 w-full h-full">
+          {/* Mobile background image */}
+          <AnimatedImage
+            src={landingPageData.hero.backgroundImage}
+            alt="Hero background"
+            className="block md:hidden w-full h-full object-cover"
+          />
+          {/* Desktop: hero-bg.jpg with dark overlay, then gradient+pattern */}
+          <div className="hidden md:block w-full h-full absolute inset-0">
+            {/* Hero background image */}
+            <img
+              src="/images/hero-bg.jpg"
+              alt="Hero background desktop"
+              className="w-full h-full object-cover absolute inset-0 z-0"
+              style={{ opacity: 0.55 }}
+            />
+            {/* Black overlay to darken image */}
+            <div className="absolute inset-0 bg-black opacity-40 z-10" />
+            {/* Subtle pattern overlay (SVG dots) */}
+            <svg className="absolute inset-0 w-full h-full opacity-10 z-30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 400 400">
+              <defs>
+                <pattern id="hero-dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="2" fill="currentColor" className="text-accent dark:text-accent-light" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#hero-dots)" />
+            </svg>
+          </div>
+        </div>
         <GradientOverlay/>
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="space-y-8"
-          >
-            <AnimatedText>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-                {landingPageData.hero.title}
-              </h1>
-            </AnimatedText>
-            <AnimatedText delay={0.2}>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
-                {landingPageData.hero.subtitle}
-              </p>
-            </AnimatedText>
-            <AnimatedText delay={0.4}>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  to="/order"
-                  className="w-full sm:w-auto"
-                >
+        {/* Desktop layout: text left, pixel images right */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center h-full px-4 sm:px-6 lg:px-8">
+          {/* Left: Text and actions */}
+          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start justify-center text-center md:text-left space-y-8">
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="space-y-8"
+            >
+              <AnimatedText>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white  dark:text-dark-text-primary leading-tight">
+                  {landingPageData.hero.title}
+                </h1>
+              </AnimatedText>
+              <AnimatedText delay={0.2}>
+                <p className="text-lg md:text-xl text-white max-w-2xl mx-auto md:mx-0">
+                  {landingPageData.hero.subtitle}
+                </p>
+              </AnimatedText>
+              <AnimatedText delay={0.4}>
+                <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4">
+                  <Link
+                    to="/order"
+                    className="w-full sm:w-auto"
+                  >
+                    <Button
+                      variant="primary"
+                      size="large"
+                      fullWidth={true}
+                      className='bg-secondary-light text-white border-1 border-white'
+                    >
+                      Order Now
+                    </Button>
+                  </Link>
                   <Button
-                    variant="primary"
+                    variant="outline"
+                    className="w-full sm:w-auto text-secondary bg-white"
                     size="large"
                     fullWidth={true}
+                    onClick={() => scrollToSection(aboutRef)}
                   >
-                    Order Now
+                    Learn More
                   </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto text-white"
-                  size="large"
-                  fullWidth={true}
-                  onClick={() => scrollToSection(aboutRef)}
-                >
-                  Learn More
-                </Button>
-              </div>
-            </AnimatedText>
-          </motion.div>
-          
-          {/* Updated ScrollIndicator usage */}
-          <ScrollIndicator onClick={() => scrollToSection(aboutRef)} />
-        </div>
+                </div>
+              </AnimatedText>
+            </motion.div>
+            {/* Scroll indicator only on mobile */}
+            <div className="block md:hidden">
+              <ScrollIndicator onClick={() => scrollToSection(aboutRef)} />
             </div>
+          </div>
+          {/* Right: Overlapping, styled, animated pixel images (desktop only) */}
+          <div className="hidden md:flex w-1/2 zoom-1 h-full items-center justify-center relative -mt-100">
+            {/* Creative overlapping layout */}
+            <PixelImage src="/images/products/Dried-locust-beans-250g.jpg" alt="Pixel 1" className="absolute left-8 top-1 w-56 h-56 z-30 rounded-3xl rotate-3" style={{ zIndex: 30 }} />
+            <PixelImage src="/images\products\Dried-locust-beans-150g.jpg" alt="Pixel 2" className="absolute left-40 top-32 w-44 h-44 z-40 rounded-full -rotate-6" style={{ zIndex: 50 }} />
+            <PixelImage src="/images/products/Dried-locust-beans-150g-2.jpg" alt="Pixel 3" className="absolute left-15 top-64 w-50 h-50 z-10 rounded-2xl rotate-12" style={{ zIndex: 10 }} />
+            <PixelImage src="/images/products/Dried-locust-beans.jpg" alt="Pixel 4" className="absolute left-70 top-16 w-52 h-90 z-30 rounded-xl -rotate-2" style={{ zIndex: 40 }} />
+          </div>
+        </div>
+      </div>
 
       {/* Features Section */}
       <section className="lg:py-20 relative overflow-hidden bg-gradient-to-b from-violet-100 to-purple-200 ">
